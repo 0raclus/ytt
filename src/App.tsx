@@ -1,16 +1,13 @@
 import React, { useEffect } from 'react';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { EventProvider } from '@/contexts/EventContext';
-import { Login } from '@/components/Login';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AdminDashboard } from '@/components/AdminDashboard';
-import { PublicWebsite } from '@/components/PublicWebsite';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toaster } from '@/components/ui/toaster';
+import { router } from '@/routes';
 import './App.css';
 
-function AppContent() {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
-
+function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -22,44 +19,15 @@ function AppContent() {
     }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-          <p className="text-muted-foreground">Yükleniyor...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
-  if (isAdmin) {
-    return (
-      <ProtectedRoute requireAdmin>
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
         <EventProvider>
-          <AdminDashboard />
+          <RouterProvider router={router} />
+          <Toaster />
         </EventProvider>
-      </ProtectedRoute>
-    );
-  }
-
-  return (
-    <EventProvider>
-      <PublicWebsite />
-    </EventProvider>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-      <Toaster />
-    </AuthProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
