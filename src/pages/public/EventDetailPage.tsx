@@ -64,12 +64,13 @@ export function EventDetailPage() {
         .select('id')
         .eq('user_id', user.id)
         .eq('event_id', id)
-        .eq('status', 'confirmed')
+        .eq('status', 'registered')
         .single();
 
       setIsRegistered(!!data);
     } catch (error) {
-      console.error('Error checking registration:', error);
+      // No registration found is not an error
+      setIsRegistered(false);
     }
   };
 
@@ -91,14 +92,15 @@ export function EventDetailPage() {
         .insert([{
           user_id: user!.id,
           event_id: id,
-          status: 'confirmed',
+          status: 'registered',
         }]);
 
       if (error) throw error;
 
+      // Update current_participants count
       await supabase
         .from('events')
-        .update({ registered_count: (event.registered_count || 0) + 1 })
+        .update({ current_participants: (event.current_participants || 0) + 1 })
         .eq('id', id);
 
       setIsRegistered(true);
@@ -130,9 +132,10 @@ export function EventDetailPage() {
 
       if (error) throw error;
 
+      // Update current_participants count
       await supabase
         .from('events')
-        .update({ registered_count: Math.max(0, (event.registered_count || 0) - 1) })
+        .update({ current_participants: Math.max(0, (event.current_participants || 0) - 1) })
         .eq('id', id);
 
       setIsRegistered(false);
@@ -184,8 +187,8 @@ export function EventDetailPage() {
     );
   }
 
-  const isFull = (event.registered_count || 0) >= event.capacity;
-  const spotsLeft = event.capacity - (event.registered_count || 0);
+  const isFull = (event.current_participants || 0) >= event.capacity;
+  const spotsLeft = event.capacity - (event.current_participants || 0);
 
   return (
     <div className="container mx-auto py-8">
@@ -302,7 +305,7 @@ export function EventDetailPage() {
                 <div>
                   <p className="font-medium">Katılımcı</p>
                   <p className="text-sm text-muted-foreground">
-                    {event.registered_count || 0} / {event.capacity}
+                    {event.current_participants || 0} / {event.capacity}
                   </p>
                   {spotsLeft > 0 && spotsLeft <= 5 && (
                     <p className="text-xs text-orange-600 mt-1">

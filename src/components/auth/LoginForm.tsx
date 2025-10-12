@@ -164,7 +164,7 @@ export function LoginForm() {
             <button
               type="button"
               className="text-primary hover:underline font-medium"
-              onClick={() => navigate('/auth/register')}
+              onClick={() => navigate('/register')}
             >
               Kayıt Ol
             </button>

@@ -10,7 +10,7 @@ import { authApi } from '@/lib/api/auth';
 import { resetPasswordSchema, ResetPasswordInput } from '@/lib/validations/auth';
 import { ZodError } from 'zod';
 
-export function ForgotPasswordPage() {
+export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
