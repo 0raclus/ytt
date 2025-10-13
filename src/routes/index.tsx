@@ -32,7 +32,7 @@ const NotificationsPage = lazy(() => import('@/pages/public/NotificationsPage').
 
 const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })));
-const AdminEventsPage = lazy(() => import('@/pages/admin/EventsPage').then(m => ({ default: m.EventsPage })));
+const AdminEventsPage = lazy(() => import('@/pages/admin/EventsPage'));
 const AdminPlantsPage = lazy(() => import('@/pages/admin/PlantsPage').then(m => ({ default: m.PlantsPage })));
 const AdminBlogPage = lazy(() => import('@/pages/admin/BlogPage').then(m => ({ default: m.BlogPage })));
 const AdminResourcesPage = lazy(() => import('@/pages/admin/ResourcesPage').then(m => ({ default: m.ResourcesPage })));
