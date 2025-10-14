@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
-export function BlogPage() {
+export default function BlogPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<any[]>([]);

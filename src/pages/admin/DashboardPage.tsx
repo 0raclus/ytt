@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 
-export function DashboardPage() {
+export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>

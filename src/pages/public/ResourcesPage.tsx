@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { FileText, Download, Search, File } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export function ResourcesPage() {
+export default function ResourcesPage() {
   const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

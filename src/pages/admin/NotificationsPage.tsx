@@ -1,7 +1,7 @@
 import React from 'react';
 import { NotificationManagement } from '@/components/admin/NotificationManagement';
 
-export function NotificationsPage() {
+export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>

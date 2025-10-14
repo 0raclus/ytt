@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Droplets, Sun, Thermometer, Wind, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export function PlantDetailPage() {
+export default function PlantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [plant, setPlant] = useState<any>(null);

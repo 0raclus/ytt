@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlantManagement } from '@/components/admin/PlantManagement';
 
-export function PlantsPage() {
+export default function PlantsPage() {
   return (
     <div className="space-y-6">
       <div>

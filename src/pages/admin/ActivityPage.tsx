@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity } from 'lucide-react';
 
-export function ActivityPage() {
+export default function ActivityPage() {
   return (
     <div className="space-y-6">
       <Card>

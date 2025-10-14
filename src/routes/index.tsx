@@ -3,7 +3,6 @@ import { createBrowserRouter, Navigate, RouteObject } from 'react-router-dom';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { NotFoundPage } from '@/pages/NotFoundPage';
 import { Loader2 } from 'lucide-react';
 
 const LoadingFallback = () => (
@@ -19,26 +18,28 @@ const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
 
-const HomePage = lazy(() => import('@/pages/public/HomePage').then(m => ({ default: m.HomePage })));
-const EventsPage = lazy(() => import('@/pages/public/EventsPage').then(m => ({ default: m.EventsPage })));
-const EventDetailPage = lazy(() => import('@/pages/public/EventDetailPage').then(m => ({ default: m.EventDetailPage })));
-const PlantsPage = lazy(() => import('@/pages/public/PlantsPage').then(m => ({ default: m.PlantsPage })));
-const PlantDetailPage = lazy(() => import('@/pages/public/PlantDetailPage').then(m => ({ default: m.PlantDetailPage })));
-const BlogPage = lazy(() => import('@/pages/public/BlogPage').then(m => ({ default: m.BlogPage })));
-const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage').then(m => ({ default: m.BlogPostPage })));
-const ResourcesPage = lazy(() => import('@/pages/public/ResourcesPage').then(m => ({ default: m.ResourcesPage })));
-const ProfilePage = lazy(() => import('@/pages/public/ProfilePage').then(m => ({ default: m.ProfilePage })));
-const NotificationsPage = lazy(() => import('@/pages/public/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const HomePage = lazy(() => import('@/pages/public/HomePage'));
+const EventsPage = lazy(() => import('@/pages/public/EventsPage'));
+const EventDetailPage = lazy(() => import('@/pages/public/EventDetailPage'));
+const PlantsPage = lazy(() => import('@/pages/public/PlantsPage'));
+const PlantDetailPage = lazy(() => import('@/pages/public/PlantDetailPage'));
+const BlogPage = lazy(() => import('@/pages/public/BlogPage'));
+const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
+const ResourcesPage = lazy(() => import('@/pages/public/ResourcesPage'));
+const ProfilePage = lazy(() => import('@/pages/public/ProfilePage'));
+const NotificationsPage = lazy(() => import('@/pages/public/NotificationsPage'));
 
-const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage').then(m => ({ default: m.UsersPage })));
+const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage'));
+const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage'));
 const AdminEventsPage = lazy(() => import('@/pages/admin/EventsPage'));
-const AdminPlantsPage = lazy(() => import('@/pages/admin/PlantsPage').then(m => ({ default: m.PlantsPage })));
-const AdminBlogPage = lazy(() => import('@/pages/admin/BlogPage').then(m => ({ default: m.BlogPage })));
-const AdminResourcesPage = lazy(() => import('@/pages/admin/ResourcesPage').then(m => ({ default: m.ResourcesPage })));
-const AdminNotificationsPage = lazy(() => import('@/pages/admin/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const AdminActivityPage = lazy(() => import('@/pages/admin/ActivityPage').then(m => ({ default: m.ActivityPage })));
-const AdminSettingsPage = lazy(() => import('@/pages/admin/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AdminPlantsPage = lazy(() => import('@/pages/admin/PlantsPage'));
+const AdminBlogPage = lazy(() => import('@/pages/admin/BlogPage'));
+const AdminResourcesPage = lazy(() => import('@/pages/admin/ResourcesPage'));
+const AdminNotificationsPage = lazy(() => import('@/pages/admin/NotificationsPage'));
+const AdminActivityPage = lazy(() => import('@/pages/admin/ActivityPage'));
+const AdminSettingsPage = lazy(() => import('@/pages/admin/SettingsPage'));
+
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 const publicRoutes: RouteObject[] = [
   {

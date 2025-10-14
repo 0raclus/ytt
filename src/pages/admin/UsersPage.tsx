@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserManagement } from '@/components/admin/UserManagement';
 
-export function UsersPage() {
+export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div>

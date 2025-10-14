@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
 
-export function ResourcesPage() {
+export default function ResourcesPage() {
   return (
     <div className="space-y-6">
       <Card>

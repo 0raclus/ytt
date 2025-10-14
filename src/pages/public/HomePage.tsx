@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
-export function HomePage() {
+export default function HomePage() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalEvents: 0,
