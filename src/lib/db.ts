@@ -1,10 +1,62 @@
 import { neon } from '@neondatabase/serverless';
 
 // Neon PostgreSQL connection
-const DATABASE_URL = import.meta.env.VITE_DATABASE_URL || 
+const DATABASE_URL = import.meta.env.VITE_DATABASE_URL ||
   'postgresql://neondb_owner:npg_DvAa7CF2IGpu@ep-hidden-breeze-agkweyze-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require';
 
 export const sql = neon(DATABASE_URL);
+
+// API client for frontend
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+export const api = {
+  async get(endpoint: string) {
+    const res = await fetch(`${API_URL}${endpoint}`);
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
+  },
+  async post(endpoint: string, data: unknown) {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
+  },
+  async put(endpoint: string, data: unknown) {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
+  },
+  async delete(endpoint: string) {
+    const res = await fetch(`${API_URL}${endpoint}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+  },
+};
+
+// Supabase-compatible wrapper (for backward compatibility)
+export const supabase = {
+  from: () => ({
+    select: () => ({ then: async (r: (v: { data: unknown[]; error: null }) => void) => r({ data: [], error: null }) }),
+    insert: () => ({ then: async (r: (v: { data: unknown; error: null }) => void) => r({ data: null, error: null }) }),
+    update: () => ({ eq: () => ({ then: async (r: (v: { error: null }) => void) => r({ error: null }) }) }),
+    delete: () => ({ eq: () => ({ then: async (r: (v: { error: null }) => void) => r({ error: null }) }) })
+  }),
+  auth: {
+    signUp: async () => ({ data: null, error: { message: 'Use API instead' } }),
+    signInWithPassword: async () => ({ data: null, error: { message: 'Use API instead' } }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  },
+  channel: () => ({ on: () => ({ subscribe: () => {} }) }),
+  removeChannel: () => {},
+};
 
 // Database helper functions
 export const db = {
