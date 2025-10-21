@@ -26,18 +26,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event, session: any) => {
         console.log('Auth state changed:', event);
 
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (event === 'SIGNED_IN' && session?.user?.id) {
           await loadUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
         } else if (event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
+          if (session?.user?.id) {
             await loadUserProfile(session.user.id);
           }
-        } else if (event === 'USER_UPDATED' && session?.user) {
+        } else if (event === 'USER_UPDATED' && session?.user?.id) {
           await loadUserProfile(session.user.id);
         }
       }
@@ -51,8 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function initializeAuth() {
     try {
       setLoading(true);
-      
-      const { data: { session }, error } = await supabase.auth.getSession();
+
+      const { data, error } = await supabase.auth.getSession();
 
       if (error) {
         console.error('Session error:', error);
@@ -60,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (session?.user) {
+      const session = data?.session as any;
+      if (session?.user?.id) {
         await loadUserProfile(session.user.id);
       } else {
         setUser(null);

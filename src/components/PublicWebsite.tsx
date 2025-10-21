@@ -36,13 +36,13 @@ export function PublicWebsite() {
     setLoading(true);
     try {
       const [eventsRes, plantsRes, regsRes, notifsRes] = await Promise.all([
-        supabase.from('events').select('*').eq('status', 'active').order('date', { ascending: true }).limit(6),
+        supabase.from('events').select('*').eq('status', 'active').limit(6),
         supabase.from('plants').select('*').limit(6),
         user ? supabase.from('event_registrations').select('event_id').eq('user_id', user.id) : { data: [] },
-        user ? supabase.from('notifications').select('*').eq('user_id', user.id).eq('read', false).order('created_at', { ascending: false }).limit(5) : { data: [] }
+        user ? supabase.from('notifications').select('*').eq('user_id', user.id).limit(5) : { data: [] }
       ]);
 
-      setEvents(eventsRes.data || []);
+      setEvents(Array.isArray(eventsRes.data) ? eventsRes.data : []);
       setPlants(plantsRes.data || []);
       setUserRegistrations((regsRes.data || []).map((r: any) => r.event_id));
       setNotifications(notifsRes.data || []);
@@ -93,8 +93,7 @@ export function PublicWebsite() {
       const { error } = await supabase
         .from('event_registrations')
         .delete()
-        .eq('event_id', eventId)
-        .eq('user_id', user?.id);
+        .eq('event_id', eventId);
 
       if (error) throw error;
 

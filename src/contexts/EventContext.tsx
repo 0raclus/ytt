@@ -86,9 +86,9 @@ export function EventProvider({ children }: { children: ReactNode }) {
         .from('event_categories')
         .select('id')
         .eq('slug', getCategorySlug(category))
-        .maybeSingle();
+        .single();
 
-      return data?.id || null;
+      return (data as any)?.id || null;
     } catch (error) {
       return null;
     }
@@ -114,8 +114,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
         .eq('user_id', user.id)
         .eq('status', 'confirmed');
 
-      if (!error && data) {
-        setRegistrations(data.map(r => r.event_id));
+      if (!error && data && Array.isArray(data)) {
+        setRegistrations(data.map((r: any) => r.event_id));
         return;
       }
     } catch (error) {
@@ -176,21 +176,22 @@ export function EventProvider({ children }: { children: ReactNode }) {
         if (error) throw error;
 
         if (data) {
+          const dbData = data as any;
           const newEvent: Event = {
-            id: data.id,
-            title: data.title,
-            description: data.description || '',
-            date: data.date,
-            time: data.time,
-            location: data.location,
-            capacity: data.capacity,
+            id: dbData.id,
+            title: dbData.title,
+            description: dbData.description || '',
+            date: dbData.date,
+            time: dbData.time,
+            location: dbData.location,
+            capacity: dbData.capacity,
             registered: 0,
             category: eventData.category,
-            requirements: data.requirements || [],
-            image: data.image_url || eventData.image,
-            instructor: data.instructor,
-            duration: data.duration || '2 saat',
-            difficulty: data.difficulty
+            requirements: dbData.requirements || [],
+            image: dbData.image_url || eventData.image,
+            instructor: dbData.instructor,
+            duration: dbData.duration || '2 saat',
+            difficulty: dbData.difficulty
           };
 
           setEvents(prev => [newEvent, ...prev]);
@@ -411,8 +412,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('event_registrations')
         .delete()
-        .eq('user_id', user.id)
-        .eq('event_id', eventId);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 

@@ -1,0 +1,64 @@
+// Neon PostgreSQL API Client - Enterprise Production Ready
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+export interface ApiResponse<T> {
+  data: T | null;
+  error: { message: string } | null;
+}
+
+class NeonAPIClient {
+  private baseURL: string;
+
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+  }
+
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(`${this.baseURL}${endpoint}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        return { data: null, error: { message: errorText || res.statusText } };
+      }
+
+      const data = await res.json();
+      return { data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: { message: error instanceof Error ? error.message : 'Network error' }
+      };
+    }
+  }
+
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async put<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+}
+
+export const neonClient = new NeonAPIClient(API_URL);

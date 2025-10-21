@@ -122,8 +122,7 @@ export function NotificationCenter() {
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
