@@ -24,6 +24,7 @@ export const db = {
     return result[0];
   },
 
+
   async createEvent(event: any) {
     const result = await sql`
       INSERT INTO events (

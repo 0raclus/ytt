@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-
 // Environment variables with production defaults
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qohkqpyxxryrevbqiqoq.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvaGtxcHl4eHJ5cmV2YnFpcW9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNTEwNzgsImV4cCI6MjA3NDkyNzA3OH0.ujGF6YrIMuatRE7eGzUHydeYzKrESV4VGzPBNZbLmQE';
