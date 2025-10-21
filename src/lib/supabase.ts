@@ -1,20 +1,85 @@
-import { createClient } from '@supabase/supabase-js';
-// Environment variables with production defaults
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qohkqpyxxryrevbqiqoq.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvaGtxcHl4eHJ5cmV2YnFpcW9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNTEwNzgsImV4cCI6MjA3NDkyNzA3OH0.ujGF6YrIMuatRE7eGzUHydeYzKrESV4VGzPBNZbLmQE';
+// API client for Neon PostgreSQL backend
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Create a fallback client that works without real Supabase connection
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
+export const api = {
+  async get(endpoint: string) {
+    const res = await fetch(`${API_URL}${endpoint}`);
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
   },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
+
+  async post(endpoint: string, data: any) {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
+  },
+
+  async put(endpoint: string, data: any) {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+    return res.json();
+  },
+
+  async delete(endpoint: string) {
+    const res = await fetch(`${API_URL}${endpoint}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+  },
+};
+
+// Legacy supabase object for compatibility
+export const supabase = {
+  from: (table: string) => ({
+    select: (columns = '*') => ({
+      eq: async (column: string, value: any) => {
+        const data = await api.get(`/${table}?${column}=${value}`);
+        return { data, error: null };
+      },
+      order: (column: string, options?: any) => ({
+        then: async (callback: any) => {
+          const data = await api.get(`/${table}`);
+          return callback({ data, error: null });
+        }
+      }),
+      then: async (callback: any) => {
+        const data = await api.get(`/${table}`);
+        return callback({ data, error: null });
+      }
+    }),
+    insert: async (values: any) => {
+      const data = await api.post(`/${table}`, values);
+      return { data, error: null };
     },
-  },
-});
+    update: async (values: any) => ({
+      eq: async (column: string, value: any) => {
+        const data = await api.put(`/${table}/${value}`, values);
+        return { data, error: null };
+      }
+    }),
+    delete: () => ({
+      eq: async (column: string, value: any) => {
+        await api.delete(`/${table}/${value}`);
+        return { error: null };
+      }
+    })
+  }),
+  auth: {
+    signUp: async () => ({ data: null, error: { message: 'Auth not implemented yet' } }),
+    signInWithPassword: async () => ({ data: null, error: { message: 'Auth not implemented yet' } }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  }
+};
 
 // Database types
 export interface Database {
