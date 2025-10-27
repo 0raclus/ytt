@@ -8,7 +8,7 @@ import {
   Calendar, Leaf, Users, TrendingUp, ArrowRight, Star,
   MapPin, Clock, Award, BookOpen, FileText
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { neonClient } from '@/lib/neon-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -32,24 +32,24 @@ export default function HomePage() {
   const loadHomeData = async () => {
     setLoading(true);
     try {
-      const [eventsRes, plantsRes, usersRes, postsRes] = await Promise.all([
-        supabase.from('events').select('*', { count: 'exact' }),
-        supabase.from('plants').select('id', { count: 'exact', head: true }),
-        supabase.from('user_profiles').select('user_id', { count: 'exact', head: true }),
-        supabase.from('blog_posts').select('*').eq('status', 'published').order('created_at', { ascending: false }).limit(3),
+      const [eventsRes, plantsRes, blogRes] = await Promise.all([
+        neonClient.get('/events'),
+        neonClient.get('/plants'),
+        neonClient.get('/blog?limit=3'),
       ]);
 
-      const activeEvents = eventsRes.data?.filter((e: any) => e.status === 'active') || [];
+      const events = Array.isArray(eventsRes.data) ? eventsRes.data : [];
+      const activeEvents = events.filter((e: any) => e.status === 'active');
 
       setStats({
-        totalEvents: eventsRes.count || 0,
-        totalPlants: plantsRes.count || 0,
-        totalUsers: usersRes.count || 0,
+        totalEvents: events.length,
+        totalPlants: Array.isArray(plantsRes.data) ? plantsRes.data.length : 0,
+        totalUsers: 0, // We don't expose user count publicly
         activeEvents: activeEvents.length,
       });
 
       setFeaturedEvents(activeEvents.slice(0, 3));
-      setRecentPosts(postsRes.data || []);
+      setRecentPosts(Array.isArray(blogRes.data) ? blogRes.data : []);
     } catch (error) {
       console.error('Error loading home data:', error);
     } finally {

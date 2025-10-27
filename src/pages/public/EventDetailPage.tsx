@@ -9,7 +9,7 @@ import {
   Calendar, Clock, MapPin, Users, ArrowLeft, Share2, Heart,
   CheckCircle, AlertCircle, User, Award, Info
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { neonClient } from '@/lib/neon-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -36,14 +36,12 @@ export default function EventDetailPage() {
 
   const loadEvent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const response = await neonClient.get(`/events/${id}`);
 
-      if (error) throw error;
-      setEvent(data);
+      if (response.error) throw new Error(response.error.message);
+      if (response.data) {
+        setEvent(response.data);
+      }
     } catch (error) {
       console.error('Error loading event:', error);
       toast({
@@ -60,15 +58,8 @@ export default function EventDetailPage() {
     if (!user || !id) return;
 
     try {
-      const { data } = await supabase
-        .from('event_registrations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('event_id', id)
-        .eq('status', 'registered')
-        .single();
-
-      setIsRegistered(!!data);
+      const response = await neonClient.get(`/registrations/check?user_id=${user.uid}&event_id=${id}`);
+      setIsRegistered(response.data?.isRegistered || false);
     } catch (error) {
       // No registration found is not an error
       setIsRegistered(false);
@@ -88,21 +79,12 @@ export default function EventDetailPage() {
 
     setRegistering(true);
     try {
-      const { error } = await supabase
-        .from('event_registrations')
-        .insert([{
-          user_id: user!.id,
-          event_id: id,
-          status: 'registered',
-        }]);
+      const response = await neonClient.post('/registrations', {
+        user_id: user!.uid,
+        event_id: id,
+      });
 
-      if (error) throw error;
-
-      // Update current_participants count
-      await supabase
-        .from('events')
-        .update({ current_participants: (event.current_participants || 0) + 1 })
-        .eq('id', id);
+      if (response.error) throw new Error(response.error.message);
 
       setIsRegistered(true);
       toast({

@@ -33,6 +33,7 @@ import { neonClient } from '@/lib/neon-client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Event {
   id: string;
@@ -46,6 +47,7 @@ interface Event {
   current_participants: number;
   category: string;
   difficulty: string;
+  duration: string;
   requirements: string[];
   image_url: string;
   status: string;
@@ -64,14 +66,29 @@ interface Registration {
   };
 }
 
+// Difficulty mapping: Turkish to English
+const difficultyToEnglish: Record<string, string> = {
+  'Başlangıç': 'beginner',
+  'Orta': 'intermediate',
+  'İleri': 'advanced',
+};
+
+const difficultyToTurkish: Record<string, string> = {
+  'beginner': 'Başlangıç',
+  'intermediate': 'Orta',
+  'advanced': 'İleri',
+};
+
 export default function EventsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [participantsDialogOpen, setParticipantsDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [participants, setParticipants] = useState<Registration[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -82,14 +99,27 @@ export default function EventsPage() {
     capacity: 20,
     category: '',
     difficulty: 'Başlangıç',
+    duration: '2 saat',
     requirements: '',
     image_url: '',
-    status: 'upcoming',
+    status: 'active',
   });
 
   useEffect(() => {
     loadEvents();
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await neonClient.get('/categories');
+      if (response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const loadEvents = async () => {
     try {
@@ -107,7 +137,8 @@ export default function EventsPage() {
           capacity: e.capacity,
           current_participants: e.registered_count || 0,
           category: e.category_slug || 'workshop',
-          difficulty: e.difficulty || 'beginner',
+          difficulty: difficultyToTurkish[e.difficulty] || 'Başlangıç',
+          duration: e.duration || '2 saat',
           requirements: e.requirements || [],
           image_url: e.image_url || '',
           status: e.status || 'active',
@@ -163,7 +194,8 @@ export default function EventsPage() {
           instructor: formData.instructor,
           capacity: Number(formData.capacity),
           category: formData.category,
-          difficulty: formData.difficulty,
+          difficulty: difficultyToEnglish[formData.difficulty] || 'beginner',
+          duration: formData.duration || '2 saat',
           requirements,
           image_url: formData.image_url,
           status: formData.status,
@@ -186,10 +218,12 @@ export default function EventsPage() {
           instructor: formData.instructor,
           capacity: Number(formData.capacity),
           category: formData.category,
-          difficulty: formData.difficulty,
+          difficulty: difficultyToEnglish[formData.difficulty] || 'beginner',
+          duration: formData.duration || '2 saat',
           requirements,
           image_url: formData.image_url,
           status: formData.status || 'active',
+          user_id: user?.uid,
         });
 
         if (response.error) throw new Error(response.error.message);
@@ -225,6 +259,7 @@ export default function EventsPage() {
       capacity: event.capacity,
       category: event.category,
       difficulty: event.difficulty,
+      duration: event.duration || '2 saat',
       requirements: event.requirements?.join(', ') || '',
       image_url: event.image_url,
       status: event.status,
@@ -273,9 +308,10 @@ export default function EventsPage() {
       capacity: 20,
       category: '',
       difficulty: 'Başlangıç',
+      duration: '2 saat',
       requirements: '',
       image_url: '',
-      status: 'upcoming',
+      status: 'active',
     });
   };
 
@@ -341,9 +377,10 @@ export default function EventsPage() {
 
                 <div>
                   <Label htmlFor="date">Tarih *</Label>
-                  <Input
+                  <input
                     id="date"
                     type="date"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={formData.date}
                     onChange={(e) =>
                       setFormData({ ...formData, date: e.target.value })
@@ -354,9 +391,10 @@ export default function EventsPage() {
 
                 <div>
                   <Label htmlFor="time">Saat *</Label>
-                  <Input
+                  <input
                     id="time"
                     type="time"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={formData.time}
                     onChange={(e) =>
                       setFormData({ ...formData, time: e.target.value })
@@ -390,6 +428,19 @@ export default function EventsPage() {
                 </div>
 
                 <div>
+                  <Label htmlFor="duration">Süre *</Label>
+                  <Input
+                    id="duration"
+                    value={formData.duration}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: e.target.value })
+                    }
+                    placeholder="Örn: 2 saat, 1.5 saat"
+                    required
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="capacity">Kapasite *</Label>
                   <Input
                     id="capacity"
@@ -404,15 +455,23 @@ export default function EventsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Kategori</Label>
-                  <Input
+                  <Label htmlFor="category">Kategori *</Label>
+                  <select
                     id="category"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
                     value={formData.category}
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    placeholder="Workshop, Eğitim, vb."
-                  />
+                    required
+                  >
+                    <option value="">Kategori Seçin</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.slug}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

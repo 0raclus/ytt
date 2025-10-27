@@ -28,41 +28,25 @@ app.post('/api/auth/sync-firebase-user', async (req, res) => {
 
     console.log('🔄 Syncing Firebase user:', { firebase_uid, email });
 
-    const existingUser = await sql`SELECT * FROM user_profiles WHERE email = ${email} LIMIT 1`;
-
-    if (existingUser.length > 0) {
-      console.log('✅ User exists, returning profile');
-      const user = existingUser[0];
-      return res.json({
-        id: user.user_id,
-        email: user.email,
-        full_name: user.full_name,
-        role: user.role,
-        avatar_url: user.avatar_url,
-        phone: user.phone,
-        bio: user.bio,
-        department: user.department,
-        student_level: user.student_level,
-      });
-    }
-
-    console.log('➕ Creating new user profile');
-
     // Check if email is in admin list
     const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'user';
-    console.log(`🔑 Assigning role: ${role} for ${email}`);
 
-    const newUser = await sql`
+    // Use INSERT ... ON CONFLICT to handle race conditions
+    const result = await sql`
       INSERT INTO user_profiles (
         user_id, email, full_name, role, avatar_url, created_at, updated_at
       ) VALUES (
         gen_random_uuid(), ${email}, ${full_name || email.split('@')[0]}, ${role}, ${avatar_url}, NOW(), NOW()
       )
+      ON CONFLICT (email) DO UPDATE SET
+        full_name = COALESCE(EXCLUDED.full_name, user_profiles.full_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, user_profiles.avatar_url),
+        updated_at = NOW()
       RETURNING *
     `;
 
-    const user = newUser[0];
-    console.log('✅ User created:', user.email, 'Role:', user.role);
+    const user = result[0];
+    console.log('✅ User synced:', user.email, 'Role:', user.role);
 
     res.json({
       id: user.user_id,
@@ -541,6 +525,27 @@ app.get('/api/registrations/user/:userId', async (req, res) => {
   }
 });
 
+// Check if user is registered for event
+app.get('/api/registrations/check', async (req, res) => {
+  try {
+    const { user_id, event_id } = req.query;
+
+    if (!user_id || !event_id) {
+      return res.status(400).json({ data: null, error: { message: 'Missing user_id or event_id' } });
+    }
+
+    const registrations = await sql`
+      SELECT * FROM event_registrations
+      WHERE user_id = ${user_id} AND event_id = ${event_id}
+    `;
+
+    res.json({ data: { isRegistered: registrations.length > 0 }, error: null });
+  } catch (error) {
+    console.error('❌ Check registration error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
 // Register for event
 app.post('/api/registrations', async (req, res) => {
   try {
@@ -677,6 +682,111 @@ app.get('/api/categories', async (req, res) => {
     res.json({ data: categories, error: null });
   } catch (error) {
     console.error('❌ Get categories error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Get all users (admin only)
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await sql`
+      SELECT id, email, full_name, role, created_at, last_login
+      FROM users
+      ORDER BY created_at DESC
+    `;
+    res.json({ data: users, error: null });
+  } catch (error) {
+    console.error('❌ Get users error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Get event statistics
+app.get('/api/events/stats', async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    // Total events this month
+    const thisMonthEvents = await sql`
+      SELECT COUNT(*) as count
+      FROM events
+      WHERE date >= DATE_TRUNC('month', CURRENT_DATE)
+        AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+    `;
+
+    // Total events last month
+    const lastMonthEvents = await sql`
+      SELECT COUNT(*) as count
+      FROM events
+      WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+        AND date < DATE_TRUNC('month', CURRENT_DATE)
+    `;
+
+    // Total registrations
+    const totalRegistrations = await sql`
+      SELECT SUM(registered_count) as total
+      FROM events
+    `;
+
+    // Registrations this week
+    const thisWeekRegistrations = await sql`
+      SELECT COUNT(*) as count
+      FROM event_registrations
+      WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE)
+    `;
+
+    // Registrations last week
+    const lastWeekRegistrations = await sql`
+      SELECT COUNT(*) as count
+      FROM event_registrations
+      WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '1 week'
+        AND created_at < DATE_TRUNC('week', CURRENT_DATE)
+    `;
+
+    // Total capacity and fill rate
+    const capacityStats = await sql`
+      SELECT
+        SUM(capacity) as total_capacity,
+        SUM(registered_count) as total_registered
+      FROM events
+    `;
+
+    // User's registered events count
+    let userRegisteredCount = 0;
+    if (user_id) {
+      const userRegistrations = await sql`
+        SELECT COUNT(*) as count
+        FROM event_registrations
+        WHERE user_id = ${user_id}
+      `;
+      userRegisteredCount = parseInt(userRegistrations[0]?.count || 0);
+    }
+
+    const thisMonth = parseInt(thisMonthEvents[0]?.count || 0);
+    const lastMonth = parseInt(lastMonthEvents[0]?.count || 0);
+    const newEventsThisMonth = thisMonth - lastMonth;
+
+    const thisWeek = parseInt(thisWeekRegistrations[0]?.count || 0);
+    const lastWeek = parseInt(lastWeekRegistrations[0]?.count || 0);
+    const newRegistrationsThisWeek = thisWeek - lastWeek;
+
+    const totalCapacity = parseInt(capacityStats[0]?.total_capacity || 0);
+    const totalRegistered = parseInt(capacityStats[0]?.total_registered || 0);
+    const fillRate = totalCapacity > 0 ? Math.round((totalRegistered / totalCapacity) * 100) : 0;
+
+    res.json({
+      data: {
+        thisMonthEvents: thisMonth,
+        newEventsThisMonth,
+        totalRegistrations: totalRegistered,
+        newRegistrationsThisWeek,
+        fillRate,
+        userRegisteredCount,
+      },
+      error: null,
+    });
+  } catch (error) {
+    console.error('❌ Get event stats error:', error.message);
     res.status(500).json({ data: null, error: { message: error.message } });
   }
 });

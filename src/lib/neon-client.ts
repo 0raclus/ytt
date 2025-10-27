@@ -28,8 +28,15 @@ class NeonAPIClient {
         return { data: null, error: { message: errorText || res.statusText } };
       }
 
-      const data = await res.json();
-      return { data, error: null };
+      const json = await res.json();
+
+      // If API already returns { data, error } format, use it directly
+      if (json && typeof json === 'object' && ('data' in json || 'error' in json)) {
+        return json as ApiResponse<T>;
+      }
+
+      // Otherwise wrap the response
+      return { data: json as T, error: null };
     } catch (error) {
       return {
         data: null,

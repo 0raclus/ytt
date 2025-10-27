@@ -45,13 +45,13 @@ export function PublicLayout() {
         <div className="container mx-auto px-4">
           <div className="h-16 flex items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                <Leaf className="h-6 w-6 text-white" />
+            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <Leaf className="h-4 w-4 md:h-6 md:w-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold">{config.app.name}</h1>
-                <p className="text-xs text-muted-foreground hidden md:block">Yenilikçi Teknoloji Takımı</p>
+              <div className="min-w-0">
+                <h1 className="text-base md:text-xl font-bold truncate">YTT</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block truncate">Yaşayan Tasarım Topluluğu</p>
               </div>
             </Link>
 

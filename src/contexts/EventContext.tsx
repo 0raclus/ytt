@@ -80,12 +80,15 @@ export function EventProvider({ children }: { children: ReactNode }) {
     try {
       const response = await neonClient.get(`/registrations/user/${user.id}`);
 
-      if (response.data) {
-        const eventIds = (response.data as any[]).map((r: any) => r.event_id);
+      if (response.data && Array.isArray(response.data)) {
+        const eventIds = response.data.map((r: any) => r.event_id);
         setRegistrations(eventIds);
+      } else {
+        setRegistrations([]);
       }
     } catch (error) {
       console.error('Error loading registrations:', error);
+      setRegistrations([]);
     }
   };
 
