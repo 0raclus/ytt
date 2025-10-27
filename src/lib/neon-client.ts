@@ -1,5 +1,10 @@
 // Neon PostgreSQL API Client - Enterprise Production Ready
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// Use environment variable or default to /api for both dev and production
+const API_URL = import.meta.env.VITE_API_URL || (
+  typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:3001/api'
+    : '/api'
+);
 
 export interface ApiResponse<T> {
   data: T | null;
