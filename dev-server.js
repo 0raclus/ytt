@@ -249,24 +249,7 @@ app.post('/api/auth/make-admin', async (req, res) => {
   }
 });
 
-// Events endpoints
-app.get('/api/events', async (req, res) => {
-  try {
-    const events = await sql`SELECT * FROM events ORDER BY date ASC`;
-    res.json({ data: events, error: null });
-  } catch (error) {
-    res.status(500).json({ data: null, error: { message: error.message } });
-  }
-});
-
-app.get('/api/events/:id', async (req, res) => {
-  try {
-    const events = await sql`SELECT * FROM events WHERE id = ${req.params.id}`;
-    res.json({ data: events[0] || null, error: null });
-  } catch (error) {
-    res.status(500).json({ data: null, error: { message: error.message } });
-  }
-});
+// OLD Events endpoints - REMOVED (using new ones below)
 
 // Plants endpoints
 app.get('/api/plants', async (req, res) => {
@@ -643,6 +626,46 @@ app.delete('/api/registrations/:id', async (req, res) => {
     res.json({ data: { success: true }, error: null });
   } catch (error) {
     console.error('❌ Cancel registration error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Get registrations for an event (admin)
+app.get('/api/registrations/event/:eventId', async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const registrations = await sql`
+      SELECT
+        r.id,
+        r.user_id,
+        r.status,
+        r.registered_at,
+        u.full_name,
+        u.email,
+        u.phone
+      FROM event_registrations r
+      LEFT JOIN user_profiles u ON r.user_id = u.user_id
+      WHERE r.event_id = ${eventId}
+      ORDER BY r.registered_at DESC
+    `;
+
+    // Map to expected format
+    const mapped = registrations.map(r => ({
+      id: r.id,
+      user_id: r.user_id,
+      status: r.status,
+      registered_at: r.registered_at,
+      user_profiles: {
+        full_name: r.full_name,
+        email: r.email,
+        phone: r.phone
+      }
+    }));
+
+    res.json({ data: mapped, error: null });
+  } catch (error) {
+    console.error('❌ Get event registrations error:', error.message);
     res.status(500).json({ data: null, error: { message: error.message } });
   }
 });

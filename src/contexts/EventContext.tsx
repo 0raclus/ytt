@@ -40,10 +40,10 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const response = await neonClient.get('/events?upcoming=true');
+      const response = await neonClient.get('/events');
 
       if (response.data) {
-        const mappedEvents: Event[] = response.data.map((e: any) => ({
+        const mappedEvents: Event[] = (response.data as any[]).map((e: any) => ({
           id: e.id,
           title: e.title,
           description: e.description,
@@ -81,7 +81,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       const response = await neonClient.get(`/registrations/user/${user.id}`);
 
       if (response.data) {
-        const eventIds = response.data.map((r: any) => r.event_id);
+        const eventIds = (response.data as any[]).map((r: any) => r.event_id);
         setRegistrations(eventIds);
       }
     } catch (error) {

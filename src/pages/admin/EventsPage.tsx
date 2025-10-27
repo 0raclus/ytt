@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Users, Calendar, MapPin } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { neonClient } from '@/lib/neon-client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -93,13 +93,28 @@ export default function EventsPage() {
 
   const loadEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
+      const response = await neonClient.get('/events');
 
-      if (error) throw error;
-      setEvents(data || []);
+      if (response.data) {
+        const mappedEvents = (response.data as any[]).map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date.split('T')[0],
+          time: e.time.substring(0, 5),
+          location: e.location,
+          instructor: e.instructor || '',
+          capacity: e.capacity,
+          current_participants: e.registered_count || 0,
+          category: e.category_slug || 'workshop',
+          difficulty: e.difficulty || 'beginner',
+          requirements: e.requirements || [],
+          image_url: e.image_url || '',
+          status: e.status || 'active',
+          created_at: e.created_at
+        }));
+        setEvents(mappedEvents);
+      }
     } catch (error) {
       console.error('Error loading events:', error);
       toast({
@@ -114,21 +129,11 @@ export default function EventsPage() {
 
   const loadParticipants = async (eventId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('event_registrations')
-        .select(`
-          *,
-          user_profiles (
-            full_name,
-            email,
-            phone
-          )
-        `)
-        .eq('event_id', eventId)
-        .order('registered_at', { ascending: false });
+      const response = await neonClient.get(`/registrations/event/${eventId}`);
 
-      if (error) throw error;
-      setParticipants(data || []);
+      if (response.data) {
+        setParticipants(response.data as Registration[]);
+      }
     } catch (error) {
       console.error('Error loading participants:', error);
       toast({
@@ -143,32 +148,51 @@ export default function EventsPage() {
     e.preventDefault();
 
     try {
-      const eventData = {
-        ...formData,
-        requirements: formData.requirements
-          ? formData.requirements.split(',').map((r) => r.trim())
-          : [],
-        capacity: Number(formData.capacity),
-      };
+      const requirements = formData.requirements
+        ? formData.requirements.split(',').map((r) => r.trim())
+        : [];
 
       if (selectedEvent) {
-        const { error } = await supabase
-          .from('events')
-          .update(eventData)
-          .eq('id', selectedEvent.id);
+        // Update event
+        const response = await neonClient.put(`/events/${selectedEvent.id}`, {
+          title: formData.title,
+          description: formData.description,
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          instructor: formData.instructor,
+          capacity: Number(formData.capacity),
+          category: formData.category,
+          difficulty: formData.difficulty,
+          requirements,
+          image_url: formData.image_url,
+          status: formData.status,
+        });
 
-        if (error) throw error;
+        if (response.error) throw new Error(response.error.message);
 
         toast({
           title: 'Başarılı!',
           description: 'Etkinlik güncellendi.',
         });
       } else {
-        const { error } = await supabase
-          .from('events')
-          .insert([{ ...eventData, current_participants: 0 }]);
+        // Create event
+        const response = await neonClient.post('/events', {
+          title: formData.title,
+          description: formData.description,
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          instructor: formData.instructor,
+          capacity: Number(formData.capacity),
+          category: formData.category,
+          difficulty: formData.difficulty,
+          requirements,
+          image_url: formData.image_url,
+          status: formData.status || 'active',
+        });
 
-        if (error) throw error;
+        if (response.error) throw new Error(response.error.message);
 
         toast({
           title: 'Başarılı!',
@@ -212,9 +236,9 @@ export default function EventsPage() {
     if (!confirm('Bu etkinliği silmek istediğinizden emin misiniz?')) return;
 
     try {
-      const { error } = await supabase.from('events').delete().eq('id', id);
+      const response = await neonClient.delete(`/events/${id}`);
 
-      if (error) throw error;
+      if (response.error) throw new Error(response.error.message);
 
       toast({
         title: 'Başarılı!',
