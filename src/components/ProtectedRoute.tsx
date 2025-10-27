@@ -10,6 +10,8 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
+
+
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, isAuthenticated, isAdmin, loading, logout } = useAuth();
   const location = useLocation();
