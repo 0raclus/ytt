@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChartBar as BarChart3, TrendingUp, Users, Calendar, Download, RefreshCw, Eye, UserCheck, CircleCheck as CheckCircle, Target } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { neonClient } from '@/lib/neon-client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -37,41 +37,46 @@ export function AdminAnalytics() {
   const loadAnalytics = async () => {
     setLoading(true);
     try {
-      const [usersRes, eventsRes, registrationsRes, categoriesRes] = await Promise.all([
-        supabase.from('user_profiles').select('user_id', { count: 'exact', head: true }),
-        supabase.from('events').select('*'),
-        supabase.from('event_registrations').select('id', { count: 'exact', head: true }),
-        supabase.from('event_categories').select('name, slug')
-      ]);
+      // Get users count
+      const usersResponse = await neonClient.get('/users');
+      const totalUsers = Array.isArray(usersResponse.data) ? usersResponse.data.length : 0;
 
-      const totalUsers = usersRes.count || 0;
-      const events = eventsRes.data || [];
+      // Get events
+      const eventsResponse = await neonClient.get('/events');
+      const events = Array.isArray(eventsResponse.data) ? eventsResponse.data : [];
       const totalEvents = events.length;
-      const totalRegistrations = registrationsRes.count || 0;
-      const activeEvents = events.filter(e => e.status === 'active').length;
+      const activeEvents = events.filter(e => e.status === 'active' || e.status === 'upcoming').length;
 
+      // Calculate total registrations from events
+      const totalRegistrations = events.reduce((sum, event) => sum + (event.registered_count || 0), 0);
+
+      // Get categories
+      const categoriesResponse = await neonClient.get('/categories');
+      const categories = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : [];
+
+      // Count events by category
       const categoryCounts: Record<string, number> = {};
       events.forEach(event => {
-        const category = categoriesRes.data?.find(c => c.slug === event.category_id)?.name || 'Diğer';
-        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        const category = categories.find(c => c.id === event.category_id);
+        const categoryName = category?.name || 'Diğer';
+        categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
       });
 
       const topCategories = Object.entries(categoryCounts)
         .map(([category, count]) => ({ category, count }))
         .sort((a, b) => b.count - a.count);
 
-      const recentActivityRes = await supabase
-        .from('event_registrations')
-        .select('*, user_profiles!inner(full_name), events!inner(title)')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const recentActivity = (recentActivityRes.data || []).map((reg: any) => ({
-        action: `${reg.user_profiles.full_name} etkinliğe kaydoldu`,
-        user: reg.user_profiles.full_name,
-        time: formatDistanceToNow(new Date(reg.created_at), { addSuffix: true, locale: tr }),
-        type: 'registration'
-      }));
+      // Get recent activity - we'll use a simplified version for now
+      // In a real implementation, you'd want a dedicated endpoint for this
+      const recentActivity = events
+        .filter(e => e.registered_count > 0)
+        .slice(0, 10)
+        .map(event => ({
+          action: `Yeni kayıt: ${event.title}`,
+          user: 'Kullanıcı',
+          time: formatDistanceToNow(new Date(event.created_at), { addSuffix: true, locale: tr }),
+          type: 'registration'
+        }));
 
       setAnalytics({
         totalUsers,

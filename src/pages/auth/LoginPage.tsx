@@ -4,22 +4,23 @@ import { Leaf } from 'lucide-react';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center relative p-4">
-      {/* Background Image */}
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
+      {/* Background Image - Full Screen */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 w-full h-full"
         style={{
           backgroundImage: 'url(/assets/background.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundRepeat: 'no-repeat',
         }}
       />
 
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
+      <div className="absolute inset-0 w-full h-full bg-black/40 dark:bg-black/60" />
 
-      <div className="w-full max-w-md space-y-8 relative z-10">
+      {/* Content */}
+      <div className="w-full max-w-md space-y-8 relative z-10 px-4">
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div className="bg-primary rounded-full p-3 shadow-lg">

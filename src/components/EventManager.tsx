@@ -154,23 +154,23 @@ export function EventManager() {
   const eventStats = [
     {
       title: 'Bu Ay',
-      value: `${events.length} Etkinlik`,
-      change: '+2 yeni',
+      value: `${stats.thisMonthEvents} Etkinlik`,
+      change: stats.newEventsThisMonth > 0 ? `+${stats.newEventsThisMonth} yeni` : 'Yeni yok',
       icon: CalendarDays,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-950/20'
     },
     {
       title: 'Toplam Katılımcı',
-      value: `${totalRegistrations} Kişi`,
-      change: '+15 bu hafta',
+      value: `${stats.totalRegistrations} Kişi`,
+      change: stats.newRegistrationsThisWeek > 0 ? `+${stats.newRegistrationsThisWeek} bu hafta` : 'Yeni yok',
       icon: Users,
       color: 'text-green-600',
       bgColor: 'bg-green-50 dark:bg-green-950/20'
     },
     {
       title: 'Doluluk Oranı',
-      value: `%${averageFillRate}`,
+      value: `%${stats.fillRate}`,
       change: 'Ortalama',
       icon: TrendingUp,
       color: 'text-orange-600',
@@ -178,7 +178,7 @@ export function EventManager() {
     },
     {
       title: 'Kayıtlı Etkinliklerim',
-      value: `${registeredEvents.length} Etkinlik`,
+      value: `${stats.userRegisteredCount} Etkinlik`,
       change: 'Aktif kayıtlar',
       icon: CheckCircle,
       color: 'text-purple-600',
