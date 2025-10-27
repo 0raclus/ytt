@@ -690,8 +690,8 @@ app.get('/api/categories', async (req, res) => {
 app.get('/api/users', async (req, res) => {
   try {
     const users = await sql`
-      SELECT id, email, full_name, role, created_at, last_login
-      FROM users
+      SELECT user_id as id, email, full_name, role, created_at, last_login
+      FROM user_profiles
       ORDER BY created_at DESC
     `;
     res.json({ data: users, error: null });

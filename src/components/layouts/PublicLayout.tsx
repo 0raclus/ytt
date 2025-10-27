@@ -46,8 +46,12 @@ export function PublicLayout() {
           <div className="h-16 flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <Leaf className="h-4 w-4 md:h-6 md:w-6 text-white" />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                <img
+                  src="/assets/ytt-logo.png"
+                  alt="YTT Logo"
+                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                />
               </div>
               <div className="min-w-0">
                 <h1 className="text-base md:text-xl font-bold truncate">YTT</h1>

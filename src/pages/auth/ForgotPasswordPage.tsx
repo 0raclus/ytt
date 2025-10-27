@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, AlertCircle, CheckCircle2, ArrowLeft, Leaf } from 'lucide-react';
+import { Loader2, Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/lib/api/auth';
 import { resetPasswordSchema, ResetPasswordInput } from '@/lib/validations/auth';
 import { ZodError } from 'zod';
@@ -53,8 +53,12 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary rounded-full p-3">
-              <Leaf className="h-8 w-8 text-primary-foreground" />
+            <div className="bg-white rounded-full p-3 shadow-lg">
+              <img
+                src="/assets/ytt-logo.png"
+                alt="YTT Logo"
+                className="h-16 w-16 object-contain"
+              />
             </div>
           </div>
           <h1 className="text-3xl font-bold">YTT Platform</h1>

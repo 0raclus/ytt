@@ -1,6 +1,5 @@
 import React from 'react';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { Leaf } from 'lucide-react';
 
 export default function LoginPage() {
   return (
@@ -23,8 +22,12 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8 relative z-10 px-4">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary rounded-full p-3 shadow-lg">
-              <Leaf className="h-8 w-8 text-primary-foreground" />
+            <div className="bg-white rounded-full p-3 shadow-lg">
+              <img
+                src="/assets/ytt-logo.png"
+                alt="YTT Logo"
+                className="h-16 w-16 object-contain"
+              />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-white drop-shadow-lg">YTT Platform</h1>
