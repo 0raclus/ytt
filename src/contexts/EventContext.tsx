@@ -224,24 +224,21 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
+      const response = await neonClient.delete(`/events/${id}`);
 
-      if (error) throw error;
+      if (response.data) {
+        setEvents(prev => prev.filter(event => event.id !== id));
+        setRegistrations(prev => prev.filter(regId => regId !== id));
 
-      setEvents(prev => prev.filter(event => event.id !== id));
+        toast({
+          title: "Etkinlik Silindi!",
+          description: "Etkinlik başarıyla silindi.",
+        });
 
-      const newRegistrations = registrations.filter(regId => regId !== id);
-      saveUserRegistrations(newRegistrations);
+        return true;
+      }
 
-      toast({
-        title: "Etkinlik Silindi!",
-        description: "Etkinlik başarıyla silindi.",
-      });
-
-      return true;
+      return false;
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({
@@ -295,34 +292,33 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('event_registrations')
-        .insert({
-          user_id: user.id,
-          event_id: eventId,
-          status: 'confirmed'
-        });
-
-      if (error) throw error;
-
-      setEvents(prev => prev.map(e =>
-        e.id === eventId ? { ...e, registered: e.registered + 1 } : e
-      ));
-
-      const newRegistrations = [...registrations, eventId];
-      saveUserRegistrations(newRegistrations);
-
-      toast({
-        title: "Kayıt Başarılı!",
-        description: `${event.title} etkinliğine kayıt oldunuz.`,
+      const response = await neonClient.post('/registrations', {
+        event_id: eventId,
+        user_id: user.id
       });
 
-      return true;
-    } catch (error) {
+      if (response.data) {
+        setEvents(prev => prev.map(e =>
+          e.id === eventId ? { ...e, registered: e.registered + 1 } : e
+        ));
+
+        setRegistrations(prev => [...prev, eventId]);
+
+        toast({
+          title: "Kayıt Başarılı!",
+          description: `${event.title} etkinliğine kayıt oldunuz.`,
+        });
+
+        return true;
+      }
+
+      return false;
+    } catch (error: unknown) {
       console.error('Error registering for event:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Kayıt sırasında bir hata oluştu.';
       toast({
         title: "Hata",
-        description: "Kayıt sırasında bir hata oluştu.",
+        description: errorMessage,
         variant: "destructive"
       });
       return false;
@@ -352,32 +348,39 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('event_registrations')
-        .delete()
-        .eq('user_id', user.id);
+      // Find registration ID
+      const regResponse = await neonClient.get(`/registrations/user/${user.id}`);
+      const registration = (regResponse.data as any[])?.find((r: any) => r.event_id === eventId);
 
-      if (error) throw error;
+      if (!registration) {
+        throw new Error('Registration not found');
+      }
 
-      setEvents(prev => prev.map(e =>
-        e.id === eventId ? { ...e, registered: Math.max(0, e.registered - 1) } : e
-      ));
+      const response = await neonClient.delete(`/registrations/${registration.id}`);
 
-      const newRegistrations = registrations.filter(id => id !== eventId);
-      saveUserRegistrations(newRegistrations);
+      if (response.data) {
+        setEvents(prev => prev.map(e =>
+          e.id === eventId ? { ...e, registered: Math.max(0, e.registered - 1) } : e
+        ));
 
-      const event = events.find(e => e.id === eventId);
-      toast({
-        title: "Kayıt İptal Edildi",
-        description: `${event?.title} etkinliğinden kayıt iptal edildi.`,
-      });
+        setRegistrations(prev => prev.filter(id => id !== eventId));
 
-      return true;
-    } catch (error) {
+        const event = events.find(e => e.id === eventId);
+        toast({
+          title: "Kayıt İptal Edildi",
+          description: `${event?.title} etkinliğinden kayıt iptal edildi.`,
+        });
+
+        return true;
+      }
+
+      return false;
+    } catch (error: unknown) {
       console.error('Error unregistering from event:', error);
+      const errorMessage = error instanceof Error ? error.message : 'İptal sırasında bir hata oluştu.';
       toast({
         title: "Hata",
-        description: "İptal sırasında bir hata oluştu.",
+        description: errorMessage,
         variant: "destructive"
       });
       return false;
