@@ -1,7 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { authApi, User, AuthResponse } from '@/lib/api/auth';
+import { auth, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut, onAuthChange, FirebaseUser } from '@/lib/firebase';
+import { neonClient } from '@/lib/neon-client';
 import { LoginInput, RegisterInput } from '@/lib/validations/auth';
+
+export interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  role: string;
+  avatar_url?: string;
+  phone?: string;
+  bio?: string;
+  department?: string;
+  student_level?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message?: string;
+  user?: User;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -9,10 +27,10 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   login: (credentials: LoginInput) => Promise<AuthResponse>;
+  loginWithGoogle: () => Promise<AuthResponse>;
   register: (userData: RegisterInput) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; message?: string }>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<AuthResponse>;
   refreshUser: () => Promise<void>;
 }
 
@@ -23,83 +41,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session: any) => {
-        console.log('Auth state changed:', event);
-
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          await loadUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        } else if (event === 'TOKEN_REFRESHED') {
-          if (session?.user?.id) {
-            await loadUserProfile(session.user.id);
-          }
-        } else if (event === 'USER_UPDATED' && session?.user?.id) {
-          await loadUserProfile(session.user.id);
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  async function initializeAuth() {
-    try {
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error('Session error:', error);
-        setUser(null);
-        return;
-      }
-
-      const session = data?.session as any;
-      if (session?.user?.id) {
-        await loadUserProfile(session.user.id);
+    const unsubscribe = onAuthChange(async (firebaseUser) => {
+      if (firebaseUser) {
+        await syncUserToNeon(firebaseUser);
       } else {
         setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  async function syncUserToNeon(firebaseUser: FirebaseUser) {
+    try {
+      setLoading(true);
+      
+      const response = await neonClient.post('/auth/sync-firebase-user', {
+        firebase_uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        full_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+        avatar_url: firebaseUser.photoURL,
+      });
+
+      if (response.data) {
+        setUser(response.data);
       }
     } catch (error) {
-      console.error('Initialize auth error:', error);
-      setUser(null);
+      console.error('Sync user error:', error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function loadUserProfile(userId: string) {
-    try {
-      const currentUser = await authApi.getCurrentUser();
-      setUser(currentUser);
-    } catch (error) {
-      console.error('Load user profile error:', error);
-      setUser(null);
     }
   }
 
   async function login(credentials: LoginInput) {
     try {
       setLoading(true);
-      const response = await authApi.login(credentials);
+      const { user: firebaseUser, error } = await signInWithEmail(credentials.email, credentials.password);
 
-      if (response.success && response.data?.user) {
-        await loadUserProfile(response.data.user.id);
+      if (error) {
+        return { success: false, message: error };
       }
 
-      return response;
+      if (firebaseUser) {
+        await syncUserToNeon(firebaseUser);
+        return { success: true, message: 'Giriş başarılı!' };
+      }
+
+      return { success: false, message: 'Giriş başarısız' };
     } catch (error: any) {
-      console.error('Login error:', error);
-      return {
-        success: false,
-        error: 'Bir hata oluştu. Lütfen tekrar deneyin.',
-      };
+      return { success: false, message: error.message || 'Giriş sırasında bir hata oluştu.' };
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loginWithGoogle() {
+    try {
+      setLoading(true);
+      const { user: firebaseUser, error } = await signInWithGoogle();
+
+      if (error) {
+        return { success: false, message: error };
+      }
+
+      if (firebaseUser) {
+        await syncUserToNeon(firebaseUser);
+        return { success: true, message: 'Google ile giriş başarılı!' };
+      }
+
+      return { success: false, message: 'Google ile giriş başarısız' };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Google ile giriş sırasında bir hata oluştu.' };
     } finally {
       setLoading(false);
     }
@@ -108,19 +121,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function registerFunc(userData: RegisterInput) {
     try {
       setLoading(true);
-      const response = await authApi.register(userData);
+      const { user: firebaseUser, error } = await signUpWithEmail(userData.email, userData.password);
 
-      if (response.success && response.data?.user && !response.data.needsEmailVerification) {
-        await loadUserProfile(response.data.user.id);
+      if (error) {
+        return { success: false, message: error };
       }
 
-      return response;
+      if (firebaseUser) {
+        const response = await neonClient.post('/auth/sync-firebase-user', {
+          firebase_uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          full_name: userData.full_name || firebaseUser.email?.split('@')[0],
+          avatar_url: firebaseUser.photoURL,
+        });
+
+        if (response.data) {
+          setUser(response.data);
+        }
+
+        return { success: true, message: 'Kayıt başarılı!' };
+      }
+
+      return { success: false, message: 'Kayıt başarısız' };
     } catch (error: any) {
-      console.error('Register error:', error);
-      return {
-        success: false,
-        error: 'Bir hata oluştu. Lütfen tekrar deneyin.',
-      };
+      return { success: false, message: error.message || 'Kayıt sırasında bir hata oluştu.' };
     } finally {
       setLoading(false);
     }
@@ -129,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     try {
       setLoading(true);
-      await authApi.logout();
+      await firebaseSignOut();
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -144,49 +168,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: 'Kullanıcı oturumu bulunamadı' };
       }
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          full_name: updates.full_name,
-          phone: updates.phone,
-          department: updates.department,
-          student_level: updates.student_level,
-          bio: updates.bio,
-          avatar_url: updates.avatar_url,
-          preferences: updates.preferences,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
+      const response = await neonClient.put(`/users/${user.id}`, updates);
 
-      if (error) {
-        console.error('Update profile error:', error);
-        return { success: false, message: 'Profil güncellenemedi' };
+      if (response.data) {
+        setUser(response.data);
+        return { success: true, message: 'Profil başarıyla güncellendi' };
       }
 
-      await loadUserProfile(user.id);
-
-      return { success: true, message: 'Profil başarıyla güncellendi' };
+      return { success: false, message: 'Profil güncellenemedi' };
     } catch (error) {
       console.error('Update profile error:', error);
       return { success: false, message: 'Bir hata oluştu' };
     }
   }
 
-  async function changePassword(oldPassword: string, newPassword: string) {
-    try {
-      return await authApi.updatePassword(oldPassword, newPassword);
-    } catch (error: any) {
-      console.error('Change password error:', error);
-      return {
-        success: false,
-        error: 'Bir hata oluştu',
-      };
-    }
-  }
-
   async function refreshUser() {
-    if (user) {
-      await loadUserProfile(user.id);
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      await syncUserToNeon(currentUser);
     }
   }
 
@@ -196,10 +195,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin: user?.role === 'admin',
     loading,
     login,
+    loginWithGoogle,
     register: registerFunc,
     logout,
     updateProfile,
-    changePassword,
     refreshUser,
   };
 
@@ -213,5 +212,3 @@ export function useAuth() {
   }
   return context;
 }
-
-export type { User };

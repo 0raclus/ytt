@@ -16,27 +16,88 @@ app.use(express.json());
 const sql = neon(process.env.VITE_DATABASE_URL);
 
 // Auth endpoints
+app.post('/api/auth/sync-firebase-user', async (req, res) => {
+  try {
+    const { firebase_uid, email, full_name, avatar_url } = req.body;
+
+    console.log('🔄 Syncing Firebase user:', { firebase_uid, email });
+
+    const existingUser = await sql`SELECT * FROM user_profiles WHERE email = ${email} LIMIT 1`;
+
+    if (existingUser.length > 0) {
+      console.log('✅ User exists, returning profile');
+      const user = existingUser[0];
+      return res.json({
+        id: user.user_id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+        avatar_url: user.avatar_url,
+        phone: user.phone,
+        bio: user.bio,
+        department: user.department,
+        student_level: user.student_level,
+      });
+    }
+
+    console.log('➕ Creating new user profile');
+    const newUser = await sql`
+      INSERT INTO user_profiles (
+        user_id, email, full_name, role, avatar_url, created_at, updated_at
+      ) VALUES (
+        gen_random_uuid(), ${email}, ${full_name || email.split('@')[0]}, 'user', ${avatar_url}, NOW(), NOW()
+      )
+      RETURNING *
+    `;
+
+    const user = newUser[0];
+    console.log('✅ User created:', user.email);
+
+    res.json({
+      id: user.user_id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      phone: user.phone,
+      bio: user.bio,
+      department: user.department,
+      student_level: user.student_level,
+    });
+  } catch (error) {
+    console.error('❌ Sync Firebase user error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/auth/signup', async (req, res) => {
   try {
+    console.log('📝 Signup request received:', { email: req.body.email, has_password: !!req.body.password, full_name: req.body.full_name });
+
     const { email, password, full_name } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ 
+      console.log('❌ Missing email or password');
+      return res.status(400).json({
         data: null,
-        error: { message: 'Email ve şifre gereklidir' } 
+        error: { message: 'Email ve şifre gereklidir' }
       });
     }
 
+    console.log('🔍 Checking if email exists...');
     const existingUser = await sql`SELECT id FROM user_profiles WHERE email = ${email}`;
     if (existingUser.length > 0) {
-      return res.status(400).json({ 
+      console.log('❌ Email already exists');
+      return res.status(400).json({
         data: null,
-        error: { message: 'Bu email zaten kullanılıyor' } 
+        error: { message: 'Bu email zaten kullanılıyor' }
       });
     }
 
+    console.log('🔐 Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    console.log('💾 Inserting new user...');
     const newUser = await sql`
       INSERT INTO user_profiles (
         user_id, email, full_name, role, password_hash, created_at, updated_at
@@ -45,6 +106,8 @@ app.post('/api/auth/signup', async (req, res) => {
       )
       RETURNING id, user_id, email, full_name, role, created_at
     `;
+
+    console.log('✅ User created:', newUser[0].email);
 
     const user = newUser[0];
     const sessionToken = Buffer.from(JSON.stringify({
@@ -61,7 +124,8 @@ app.post('/api/auth/signup', async (req, res) => {
       error: null
     });
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('❌ Signup error:', error.message);
+    console.error('Full error:', error);
     res.status(500).json({ data: null, error: { message: error.message } });
   }
 });

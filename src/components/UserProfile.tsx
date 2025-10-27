@@ -15,7 +15,7 @@ import { useEvents } from '@/contexts/EventContext';
 
 export function UserProfile() {
   const { getUserRegistrations, events } = useEvents();
-  const { user, isAuthenticated, updateProfile, changePassword } = useAuth();
+  const { user, isAuthenticated, updateProfile } = useAuth();
   const { toast } = useToast();
   
   if (!isAuthenticated) {
@@ -43,71 +43,13 @@ export function UserProfile() {
     level: user?.student_level || ''
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
   const [preferences, setPreferences] = useState({
     emailNotifications: true,
     pushNotifications: true,
-    reminderTime: 1, // hours before event
+    reminderTime: 1,
     newsletter: true,
     smsNotifications: false
   });
-
-  const handleChangePassword = async () => {
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      toast({
-        title: "Eksik Bilgi",
-        description: "Lütfen tüm şifre alanlarını doldurun.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Geçersiz Şifre",
-        description: "Yeni şifre en az 6 karakter olmalıdır.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Şifre Uyumsuzluğu",
-        description: "Yeni şifreler eşleşmiyor.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-      if (result.success) {
-        toast({
-          title: "Şifre Güncellendi!",
-          description: result.message,
-        });
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        toast({
-          title: "Hata",
-          description: result.message,
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Hata",
-        description: "Şifre değiştirme işlemi başarısız oldu.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleSaveProfile = async () => {
     try {
