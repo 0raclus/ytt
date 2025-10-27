@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Droplets, Sun, Thermometer, Wind, AlertCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 export default function PlantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,14 +19,10 @@ export default function PlantDetailPage() {
 
   const loadPlant = async () => {
     try {
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      setPlant(data);
+      const response = await fetch('/api/plants');
+      const result = await response.json();
+      const foundPlant = (result.data || []).find((p: any) => p.id === id);
+      setPlant(foundPlant || null);
     } catch (error) {
       console.error('Error loading plant:', error);
     } finally {

@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.data) {
-        setUser(response.data);
+        setUser(response.data as User);
       }
     } catch (error) {
       console.error('Sync user error:', error);
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (response.data) {
-          setUser(response.data);
+          setUser(response.data as User);
         }
 
         return { success: true, message: 'Kayıt başarılı!' };
@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.data) {
-        setUser(response.data);
+        setUser(response.data as User);
         return { success: true, message: 'Profil başarıyla güncellendi' };
       }
 

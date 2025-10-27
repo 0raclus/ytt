@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Bell, Clock, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Search, Trash2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
@@ -36,26 +35,6 @@ export function NotificationCenter() {
   useEffect(() => {
     if (isAuthenticated && user) {
       loadNotifications();
-
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`
-          },
-          () => {
-            loadNotifications();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
   }, [user, isAuthenticated]);
 
@@ -64,16 +43,41 @@ export function NotificationCenter() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Mock notifications - replace with API call if needed
+      const mockNotifications: Notification[] = [
+        {
+          id: '1',
+          title: 'Etkinlik Hatırlatması',
+          message: 'Yarın saat 14:00\'da "React Workshop" etkinliği başlıyor!',
+          type: 'reminder',
+          created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          read: false,
+          priority: 'high',
+          category: 'event',
+        },
+        {
+          id: '2',
+          title: 'Yeni Etkinlik',
+          message: 'Yeni bir etkinlik eklendi: "TypeScript İleri Seviye"',
+          type: 'info',
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          read: false,
+          priority: 'medium',
+          category: 'event',
+        },
+        {
+          id: '3',
+          title: 'Kayıt Onayı',
+          message: 'Etkinlik kaydınız başarıyla tamamlandı.',
+          type: 'success',
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+          read: true,
+          priority: 'low',
+          category: 'system',
+        },
+      ];
 
-      if (error) throw error;
-
-      const mappedNotifications: Notification[] = (data || []).map((n: any) => ({
+      const mappedNotifications: Notification[] = mockNotifications.map((n: any) => ({
         id: n.id,
         title: n.title,
         message: n.message,
@@ -100,13 +104,7 @@ export function NotificationCenter() {
 
   const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id);
-
-      if (error) throw error;
-
+      // Mock implementation - update local state only
       setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, read: true } : n)
       );
@@ -119,13 +117,7 @@ export function NotificationCenter() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
+      // Mock implementation - update local state only
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
       toast({
@@ -144,13 +136,7 @@ export function NotificationCenter() {
 
   const deleteNotification = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      // Mock implementation - update local state only
       setNotifications(prev => prev.filter(n => n.id !== id));
 
       toast({

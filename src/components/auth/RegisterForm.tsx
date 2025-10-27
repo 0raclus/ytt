@@ -96,12 +96,12 @@ export function RegisterForm() {
 
       if (result.success) {
         setSuccess(result.message || 'Kayıt başarılı!');
-        
+
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       } else {
-        setError(result.error || 'Kayıt başarısız');
+        setError(result.message || 'Kayıt başarısız');
       }
     } catch (err) {
       if (err instanceof ZodError) {

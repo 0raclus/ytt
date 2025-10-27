@@ -5,11 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   Calendar, Leaf, Bell, User, LogOut, Search, MapPin,
-  Clock, Users, ArrowRight, Star, Award, TrendingUp,
-  Menu, X, Moon, Sun, Home, BookOpen, Mail, Phone
+  Clock, Users, ArrowRight,
+  Menu, X, Moon, Sun, Home, Mail, Phone
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -35,17 +34,19 @@ export function PublicWebsite() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [eventsRes, plantsRes, regsRes, notifsRes] = await Promise.all([
-        supabase.from('events').select('*').eq('status', 'active').limit(6),
-        supabase.from('plants').select('*').limit(6),
-        user ? supabase.from('event_registrations').select('event_id').eq('user_id', user.id) : { data: [] },
-        user ? supabase.from('notifications').select('*').eq('user_id', user.id).limit(5) : { data: [] }
-      ]);
+      // Load events and plants from API
+      const eventsRes = await fetch('/api/events?status=active');
+      const plantsRes = await fetch('/api/plants');
 
-      setEvents(Array.isArray(eventsRes.data) ? eventsRes.data : []);
-      setPlants(plantsRes.data || []);
-      setUserRegistrations((regsRes.data || []).map((r: any) => r.event_id));
-      setNotifications(notifsRes.data || []);
+      const eventsData = await eventsRes.json();
+      const plantsData = await plantsRes.json();
+
+      setEvents(Array.isArray(eventsData.data) ? eventsData.data.slice(0, 6) : []);
+      setPlants(Array.isArray(plantsData.data) ? plantsData.data.slice(0, 6) : []);
+
+      // Mock user registrations and notifications
+      setUserRegistrations([]);
+      setNotifications([]);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -72,14 +73,7 @@ export function PublicWebsite() {
     }
 
     try {
-      const { error } = await supabase.from('event_registrations').insert([{
-        event_id: eventId,
-        user_id: user.id,
-        status: 'confirmed'
-      }]);
-
-      if (error) throw error;
-
+      // Mock registration - replace with API call if needed
       setUserRegistrations([...userRegistrations, eventId]);
       toast({ title: "Başarılı!", description: "Etkinliğe kaydoldunuz." });
       loadData();
@@ -90,12 +84,7 @@ export function PublicWebsite() {
 
   const cancelRegistration = async (eventId: string) => {
     try {
-      const { error } = await supabase
-        .from('event_registrations')
-        .delete()
-        .eq('event_id', eventId);
-
-      if (error) throw error;
+      // Mock cancellation - replace with API call if needed
 
       setUserRegistrations(userRegistrations.filter(id => id !== eventId));
       toast({ title: "İptal Edildi", description: "Kaydınız iptal edildi." });

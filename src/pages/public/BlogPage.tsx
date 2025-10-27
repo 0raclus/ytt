@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Search, Calendar, User } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
@@ -20,14 +19,9 @@ export default function BlogPage() {
 
   const loadPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
+      const response = await fetch('/api/blog');
+      const result = await response.json();
+      setPosts(result.data || []);
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {

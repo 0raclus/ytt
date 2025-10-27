@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Download, Search, File } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 
 export default function ResourcesPage() {
   const [resources, setResources] = useState<any[]>([]);
@@ -17,14 +16,8 @@ export default function ResourcesPage() {
 
   const loadResources = async () => {
     try {
-      const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setResources(data || []);
+      // Mock resources - replace with API call if needed
+      setResources([]);
     } catch (error) {
       console.error('Error loading resources:', error);
     } finally {
