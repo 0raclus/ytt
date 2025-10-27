@@ -15,6 +15,12 @@ app.use(express.json());
 
 const sql = neon(process.env.VITE_DATABASE_URL);
 
+// Admin email list - these emails will automatically get admin role
+const ADMIN_EMAILS = [
+  'klausmullermaxwell@gmail.com', // Your email
+  // Add more admin emails here
+];
+
 // Auth endpoints
 app.post('/api/auth/sync-firebase-user', async (req, res) => {
   try {
@@ -41,17 +47,22 @@ app.post('/api/auth/sync-firebase-user', async (req, res) => {
     }
 
     console.log('➕ Creating new user profile');
+
+    // Check if email is in admin list
+    const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'user';
+    console.log(`🔑 Assigning role: ${role} for ${email}`);
+
     const newUser = await sql`
       INSERT INTO user_profiles (
         user_id, email, full_name, role, avatar_url, created_at, updated_at
       ) VALUES (
-        gen_random_uuid(), ${email}, ${full_name || email.split('@')[0]}, 'user', ${avatar_url}, NOW(), NOW()
+        gen_random_uuid(), ${email}, ${full_name || email.split('@')[0]}, ${role}, ${avatar_url}, NOW(), NOW()
       )
       RETURNING *
     `;
 
     const user = newUser[0];
-    console.log('✅ User created:', user.email);
+    console.log('✅ User created:', user.email, 'Role:', user.role);
 
     res.json({
       id: user.user_id,
@@ -206,6 +217,38 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ data: null, error: null });
 });
 
+// Make user admin (for initial setup)
+app.post('/api/auth/make-admin', async (req, res) => {
+  try {
+    const { email, secret } = req.body;
+
+    // Simple secret key for initial admin setup
+    // In production, use environment variable
+    const ADMIN_SECRET = process.env.ADMIN_SECRET || 'ytt-admin-2025';
+
+    if (secret !== ADMIN_SECRET) {
+      return res.status(403).json({ error: 'Invalid secret key' });
+    }
+
+    const result = await sql`
+      UPDATE user_profiles
+      SET role = 'admin', updated_at = NOW()
+      WHERE email = ${email}
+      RETURNING user_id, email, full_name, role
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log('👑 User promoted to admin:', result[0].email);
+    res.json({ data: result[0], error: null });
+  } catch (error) {
+    console.error('❌ Make admin error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Events endpoints
 app.get('/api/events', async (req, res) => {
   try {
@@ -302,33 +345,51 @@ app.get('/api/events', async (req, res) => {
   try {
     const { category, status, upcoming } = req.query;
 
-    let query = sql`
-      SELECT
-        e.*,
-        c.name as category_name,
-        c.slug as category_slug,
-        c.icon as category_icon,
-        c.color as category_color
-      FROM events e
-      LEFT JOIN event_categories c ON e.category_id = c.id
-      WHERE 1=1
-    `;
+    // Build WHERE conditions
+    let whereClause = 'WHERE 1=1';
+    if (category) whereClause += ` AND c.slug = '${category}'`;
+    if (status) whereClause += ` AND e.status = '${status}'`;
+    if (upcoming === 'true') whereClause += ` AND e.date >= CURRENT_DATE`;
 
-    if (category) {
-      query = sql`${query} AND c.slug = ${category}`;
-    }
-
-    if (status) {
-      query = sql`${query} AND e.status = ${status}`;
-    }
-
+    // Use template literal directly in tagged template
+    let events;
     if (upcoming === 'true') {
-      query = sql`${query} AND e.date >= CURRENT_DATE`;
+      events = await sql`
+        SELECT
+          e.id, e.title, e.description, e.date, e.time, e.location,
+          e.capacity, e.registered_count, e.requirements, e.image_url,
+          e.instructor, e.duration, e.difficulty, e.status,
+          e.created_by, e.created_at, e.updated_at,
+          c.name as category_name,
+          c.slug as category_slug,
+          c.icon as category_icon,
+          c.color as category_color
+        FROM events e
+        LEFT JOIN event_categories c ON e.category_id = c.id
+        WHERE e.date >= CURRENT_DATE
+        ORDER BY e.date ASC, e.time ASC
+      `;
+    } else {
+      events = await sql`
+        SELECT
+          e.id, e.title, e.description, e.date, e.time, e.location,
+          e.capacity, e.registered_count, e.requirements, e.image_url,
+          e.instructor, e.duration, e.difficulty, e.status,
+          e.created_by, e.created_at, e.updated_at,
+          c.name as category_name,
+          c.slug as category_slug,
+          c.icon as category_icon,
+          c.color as category_color
+        FROM events e
+        LEFT JOIN event_categories c ON e.category_id = c.id
+        ORDER BY e.date ASC, e.time ASC
+      `;
     }
 
-    query = sql`${query} ORDER BY e.date ASC, e.time ASC`;
-
-    const events = await query;
+    console.log('📊 Events query result:', events.length, 'events');
+    if (events.length > 0) {
+      console.log('📝 First event:', JSON.stringify(events[0], null, 2));
+    }
 
     res.json({ data: events, error: null });
   } catch (error) {

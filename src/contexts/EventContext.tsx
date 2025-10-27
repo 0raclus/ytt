@@ -401,7 +401,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
         title: "Güncellendi",
         description: "Etkinlikler güncellendi.",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error refreshing events:', error);
       toast({
         title: "Hata",
         description: "Güncellenirken hata oluştu.",
