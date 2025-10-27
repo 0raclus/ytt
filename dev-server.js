@@ -293,6 +293,310 @@ app.put('/api/profile/update', async (req, res) => {
   }
 });
 
+// ============================================
+// EVENTS ENDPOINTS
+// ============================================
+
+// Get all events
+app.get('/api/events', async (req, res) => {
+  try {
+    const { category, status, upcoming } = req.query;
+
+    let query = sql`
+      SELECT
+        e.*,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.icon as category_icon,
+        c.color as category_color
+      FROM events e
+      LEFT JOIN event_categories c ON e.category_id = c.id
+      WHERE 1=1
+    `;
+
+    if (category) {
+      query = sql`${query} AND c.slug = ${category}`;
+    }
+
+    if (status) {
+      query = sql`${query} AND e.status = ${status}`;
+    }
+
+    if (upcoming === 'true') {
+      query = sql`${query} AND e.date >= CURRENT_DATE`;
+    }
+
+    query = sql`${query} ORDER BY e.date ASC, e.time ASC`;
+
+    const events = await query;
+
+    res.json({ data: events, error: null });
+  } catch (error) {
+    console.error('❌ Get events error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Get single event
+app.get('/api/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const events = await sql`
+      SELECT
+        e.*,
+        c.name as category_name,
+        c.slug as category_slug,
+        c.icon as category_icon,
+        c.color as category_color
+      FROM events e
+      LEFT JOIN event_categories c ON e.category_id = c.id
+      WHERE e.id = ${id}
+    `;
+
+    if (events.length === 0) {
+      return res.status(404).json({ data: null, error: { message: 'Event not found' } });
+    }
+
+    res.json({ data: events[0], error: null });
+  } catch (error) {
+    console.error('❌ Get event error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Create event (admin only)
+app.post('/api/events', async (req, res) => {
+  try {
+    const {
+      title, description, date, time, location, capacity,
+      category, requirements, image_url, instructor, duration, difficulty, user_id
+    } = req.body;
+
+    if (!title || !description || !date || !time || !location || !capacity || !category) {
+      return res.status(400).json({ data: null, error: { message: 'Missing required fields' } });
+    }
+
+    // Get category ID
+    const categories = await sql`SELECT id FROM event_categories WHERE slug = ${category}`;
+    if (categories.length === 0) {
+      return res.status(400).json({ data: null, error: { message: 'Invalid category' } });
+    }
+
+    const categoryId = categories[0].id;
+
+    const newEvent = await sql`
+      INSERT INTO events (
+        title, description, date, time, location, capacity,
+        category_id, requirements, image_url, instructor, duration, difficulty, created_by
+      ) VALUES (
+        ${title}, ${description}, ${date}, ${time}, ${location}, ${capacity},
+        ${categoryId}, ${requirements || []}, ${image_url}, ${instructor}, ${duration}, ${difficulty}, ${user_id}
+      )
+      RETURNING *
+    `;
+
+    res.json({ data: newEvent[0], error: null });
+  } catch (error) {
+    console.error('❌ Create event error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Update event (admin only)
+app.put('/api/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title, description, date, time, location, capacity,
+      category, requirements, image_url, instructor, duration, difficulty, status
+    } = req.body;
+
+    let categoryId = null;
+    if (category) {
+      const categories = await sql`SELECT id FROM event_categories WHERE slug = ${category}`;
+      if (categories.length > 0) {
+        categoryId = categories[0].id;
+      }
+    }
+
+    const updated = await sql`
+      UPDATE events SET
+        title = COALESCE(${title}, title),
+        description = COALESCE(${description}, description),
+        date = COALESCE(${date}, date),
+        time = COALESCE(${time}, time),
+        location = COALESCE(${location}, location),
+        capacity = COALESCE(${capacity}, capacity),
+        category_id = COALESCE(${categoryId}, category_id),
+        requirements = COALESCE(${requirements}, requirements),
+        image_url = COALESCE(${image_url}, image_url),
+        instructor = COALESCE(${instructor}, instructor),
+        duration = COALESCE(${duration}, duration),
+        difficulty = COALESCE(${difficulty}, difficulty),
+        status = COALESCE(${status}, status),
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (updated.length === 0) {
+      return res.status(404).json({ data: null, error: { message: 'Event not found' } });
+    }
+
+    res.json({ data: updated[0], error: null });
+  } catch (error) {
+    console.error('❌ Update event error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Delete event (admin only)
+app.delete('/api/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await sql`DELETE FROM events WHERE id = ${id} RETURNING id`;
+
+    if (deleted.length === 0) {
+      return res.status(404).json({ data: null, error: { message: 'Event not found' } });
+    }
+
+    res.json({ data: { success: true }, error: null });
+  } catch (error) {
+    console.error('❌ Delete event error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// ============================================
+// EVENT REGISTRATIONS ENDPOINTS
+// ============================================
+
+// Get user's registrations
+app.get('/api/registrations/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const registrations = await sql`
+      SELECT
+        r.*,
+        e.title, e.date, e.time, e.location, e.image_url,
+        c.name as category_name, c.slug as category_slug
+      FROM event_registrations r
+      JOIN events e ON r.event_id = e.id
+      LEFT JOIN event_categories c ON e.category_id = c.id
+      WHERE r.user_id = ${userId} AND r.status = 'confirmed'
+      ORDER BY e.date ASC
+    `;
+
+    res.json({ data: registrations, error: null });
+  } catch (error) {
+    console.error('❌ Get registrations error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Register for event
+app.post('/api/registrations', async (req, res) => {
+  try {
+    const { event_id, user_id, notes } = req.body;
+
+    if (!event_id || !user_id) {
+      return res.status(400).json({ data: null, error: { message: 'Missing event_id or user_id' } });
+    }
+
+    // Check if event exists and has capacity
+    const events = await sql`SELECT * FROM events WHERE id = ${event_id}`;
+    if (events.length === 0) {
+      return res.status(404).json({ data: null, error: { message: 'Event not found' } });
+    }
+
+    const event = events[0];
+    if (event.registered_count >= event.capacity) {
+      return res.status(400).json({ data: null, error: { message: 'Event is full' } });
+    }
+
+    // Check if already registered
+    const existing = await sql`
+      SELECT * FROM event_registrations
+      WHERE event_id = ${event_id} AND user_id = ${user_id}
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ data: null, error: { message: 'Already registered for this event' } });
+    }
+
+    // Create registration
+    const registration = await sql`
+      INSERT INTO event_registrations (event_id, user_id, notes, status)
+      VALUES (${event_id}, ${user_id}, ${notes || null}, 'confirmed')
+      RETURNING *
+    `;
+
+    // Update event registered_count
+    await sql`
+      UPDATE events
+      SET registered_count = registered_count + 1,
+          status = CASE
+            WHEN registered_count + 1 >= capacity THEN 'full'
+            ELSE status
+          END
+      WHERE id = ${event_id}
+    `;
+
+    res.json({ data: registration[0], error: null });
+  } catch (error) {
+    console.error('❌ Register for event error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Cancel registration
+app.delete('/api/registrations/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get registration to find event_id
+    const registrations = await sql`SELECT * FROM event_registrations WHERE id = ${id}`;
+    if (registrations.length === 0) {
+      return res.status(404).json({ data: null, error: { message: 'Registration not found' } });
+    }
+
+    const registration = registrations[0];
+
+    // Delete registration
+    await sql`DELETE FROM event_registrations WHERE id = ${id}`;
+
+    // Update event registered_count
+    await sql`
+      UPDATE events
+      SET registered_count = GREATEST(registered_count - 1, 0),
+          status = CASE
+            WHEN status = 'full' AND registered_count - 1 < capacity THEN 'active'
+            ELSE status
+          END
+      WHERE id = ${registration.event_id}
+    `;
+
+    res.json({ data: { success: true }, error: null });
+  } catch (error) {
+    console.error('❌ Cancel registration error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
+// Get event categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await sql`SELECT * FROM event_categories ORDER BY name`;
+    res.json({ data: categories, error: null });
+  } catch (error) {
+    console.error('❌ Get categories error:', error.message);
+    res.status(500).json({ data: null, error: { message: error.message } });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Dev API Server running on http://localhost:${PORT}`);
   console.log(`📡 API endpoints available at http://localhost:${PORT}/api/*`);

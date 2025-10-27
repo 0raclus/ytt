@@ -9,8 +9,15 @@ const sql = neon(process.env.VITE_DATABASE_URL);
 
 async function createTables() {
   console.log('🚀 Creating events tables...\n');
-  
+
   try {
+    // Drop old tables if they exist
+    console.log('🗑️  Dropping old tables...');
+    await sql`DROP TABLE IF EXISTS event_registrations CASCADE`;
+    await sql`DROP TABLE IF EXISTS events CASCADE`;
+    await sql`DROP TABLE IF EXISTS event_categories CASCADE`;
+    console.log('✅ Old tables dropped\n');
+
     // Create event_categories table
     console.log('📁 Creating event_categories table...');
     await sql`

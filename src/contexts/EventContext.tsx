@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Event } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { events as mockEvents } from '@/data/events';
+import { neonClient } from '@/lib/neon-client';
 
 interface EventContextType {
   events: Event[];
@@ -40,9 +40,35 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      setEvents(mockEvents);
+      const response = await neonClient.get('/events?upcoming=true');
+
+      if (response.data) {
+        const mappedEvents: Event[] = response.data.map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date.split('T')[0],
+          time: e.time.substring(0, 5),
+          location: e.location,
+          capacity: e.capacity,
+          registered: e.registered_count || 0,
+          category: e.category_slug || 'workshop',
+          requirements: e.requirements || [],
+          image: e.image_url || 'https://images.pexels.com/photos/1402787/pexels-photo-1402787.jpeg',
+          instructor: e.instructor,
+          duration: e.duration || '2 saat',
+          difficulty: e.difficulty || 'beginner'
+        }));
+
+        setEvents(mappedEvents);
+      }
     } catch (error) {
       console.error('Error loading events:', error);
+      toast({
+        title: "Hata",
+        description: "Etkinlikler yüklenirken bir hata oluştu.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -51,21 +77,20 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadUserRegistrations = async () => {
     if (!user) return;
 
-    const savedRegistrations = localStorage.getItem(`user_registrations_${user.id}`);
-    if (savedRegistrations) {
-      setRegistrations(JSON.parse(savedRegistrations));
-    }
-  };
+    try {
+      const response = await neonClient.get(`/registrations/user/${user.id}`);
 
-  const saveUserRegistrations = (newRegistrations: string[]) => {
-    if (user) {
-      localStorage.setItem(`user_registrations_${user.id}`, JSON.stringify(newRegistrations));
-      setRegistrations(newRegistrations);
+      if (response.data) {
+        const eventIds = response.data.map((r: any) => r.event_id);
+        setRegistrations(eventIds);
+      }
+    } catch (error) {
+      console.error('Error loading registrations:', error);
     }
   };
 
   const addEvent = async (eventData: Omit<Event, 'id'>): Promise<boolean> => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       toast({
         title: "Giriş Gerekli",
         description: "Etkinlik eklemek için giriş yapmalısınız.",
@@ -76,52 +101,40 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const categoryId = await getCategoryId(eventData.category);
+      const response = await neonClient.post('/events', {
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.date,
+        time: eventData.time,
+        location: eventData.location,
+        capacity: eventData.capacity,
+        category: eventData.category,
+        requirements: eventData.requirements,
+        image_url: eventData.image,
+        instructor: eventData.instructor,
+        duration: eventData.duration,
+        difficulty: eventData.difficulty,
+        user_id: user.id
+      });
 
-      const { data, error } = await supabase
-          .from('events')
-          .insert({
-            title: eventData.title,
-            slug: eventData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-            description: eventData.description,
-            instructor: eventData.instructor,
-            date: eventData.date,
-            time: eventData.time,
-            duration: eventData.duration,
-            location: eventData.location,
-            capacity: eventData.capacity,
-            category_id: categoryId,
-            difficulty: eventData.difficulty,
-            requirements: eventData.requirements,
-            image_url: eventData.image,
-            status: 'active',
-            is_free: true,
-            materials_provided: true,
-            created_by: user?.id
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          const dbData = data as any;
-          const newEvent: Event = {
-            id: dbData.id,
-            title: dbData.title,
-            description: dbData.description || '',
-            date: dbData.date,
-            time: dbData.time,
-            location: dbData.location,
-            capacity: dbData.capacity,
-            registered: 0,
-            category: eventData.category,
-            requirements: dbData.requirements || [],
-            image: dbData.image_url || eventData.image,
-            instructor: dbData.instructor,
-            duration: dbData.duration || '2 saat',
-            difficulty: dbData.difficulty
-          };
+      if (response.data) {
+        const dbData = response.data as any;
+        const newEvent: Event = {
+          id: dbData.id,
+          title: dbData.title,
+          description: dbData.description,
+          date: dbData.date.split('T')[0],
+          time: dbData.time.substring(0, 5),
+          location: dbData.location,
+          capacity: dbData.capacity,
+          registered: dbData.registered_count || 0,
+          category: eventData.category,
+          requirements: dbData.requirements || [],
+          image: dbData.image_url || eventData.image,
+          instructor: dbData.instructor,
+          duration: dbData.duration || '2 saat',
+          difficulty: dbData.difficulty
+        };
 
           setEvents(prev => [newEvent, ...prev]);
         }
@@ -157,34 +170,35 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
     setLoading(true);
     try {
-      const dbUpdates: any = {};
-      if (updates.title) dbUpdates.title = updates.title;
-      if (updates.description) dbUpdates.description = updates.description;
-      if (updates.date) dbUpdates.date = updates.date;
-      if (updates.time) dbUpdates.time = updates.time;
-      if (updates.location) dbUpdates.location = updates.location;
-      if (updates.capacity) dbUpdates.capacity = updates.capacity;
-      if (updates.instructor) dbUpdates.instructor = updates.instructor;
-      if (updates.duration) dbUpdates.duration = updates.duration;
-      if (updates.difficulty) dbUpdates.difficulty = updates.difficulty;
-
-      const { error } = await supabase
-        .from('events')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setEvents(prev => prev.map(event =>
-        event.id === id ? { ...event, ...updates } : event
-      ));
-
-      toast({
-        title: "Etkinlik Güncellendi!",
-        description: "Etkinlik başarıyla güncellendi.",
+      const response = await neonClient.put(`/events/${id}`, {
+        title: updates.title,
+        description: updates.description,
+        date: updates.date,
+        time: updates.time,
+        location: updates.location,
+        capacity: updates.capacity,
+        category: updates.category,
+        requirements: updates.requirements,
+        image_url: updates.image,
+        instructor: updates.instructor,
+        duration: updates.duration,
+        difficulty: updates.difficulty
       });
 
-      return true;
+      if (response.data) {
+        setEvents(prev => prev.map(event =>
+          event.id === id ? { ...event, ...updates } : event
+        ));
+
+        toast({
+          title: "Etkinlik Güncellendi!",
+          description: "Etkinlik başarıyla güncellendi.",
+        });
+
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error('Error updating event:', error);
       toast({
