@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Event } from '@/types';
 import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { events as mockEvents } from '@/data/events';
 
 interface EventContextType {
   events: Event[];
@@ -40,87 +40,16 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const loadEvents = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-
-      const mappedEvents: Event[] = (data || []).map((e: any) => ({
-        id: e.id,
-        title: e.title,
-        description: e.description || '',
-        date: e.date,
-        time: e.time,
-        location: e.location,
-        capacity: e.capacity,
-        registered: e.registered_count || 0,
-        category: mapCategory(e.category_id),
-        requirements: e.requirements || [],
-        image: e.image_url || 'https://images.pexels.com/photos/1402787/pexels-photo-1402787.jpeg',
-        instructor: e.instructor,
-        duration: e.duration || '2 saat',
-        difficulty: e.difficulty
-      }));
-      setEvents(mappedEvents);
+      setEvents(mockEvents);
     } catch (error) {
-      console.error('Error loading events from database:', error);
-      toast({
-        title: "Hata",
-        description: "Etkinlikler yüklenirken bir hata oluştu.",
-        variant: "destructive"
-      });
+      console.error('Error loading events:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const mapCategory = (categoryId: string | null): 'workshop' | 'walk' | 'seminar' | 'planting' => {
-    return 'workshop';
-  };
-
-  const getCategoryId = async (category: string): Promise<string | null> => {
-    try {
-      const { data } = await supabase
-        .from('event_categories')
-        .select('id')
-        .eq('slug', getCategorySlug(category))
-        .single();
-
-      return (data as any)?.id || null;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  const getCategorySlug = (category: string): string => {
-    const map: Record<string, string> = {
-      'workshop': 'workshops',
-      'walk': 'walks',
-      'seminar': 'seminars',
-      'planting': 'planting'
-    };
-    return map[category] || 'workshops';
-  };
-
   const loadUserRegistrations = async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('event_registrations')
-        .select('event_id')
-        .eq('user_id', user.id)
-        .eq('status', 'confirmed');
-
-      if (!error && data && Array.isArray(data)) {
-        setRegistrations(data.map((r: any) => r.event_id));
-        return;
-      }
-    } catch (error) {
-      console.error('Error loading registrations from database:', error);
-    }
 
     const savedRegistrations = localStorage.getItem(`user_registrations_${user.id}`);
     if (savedRegistrations) {

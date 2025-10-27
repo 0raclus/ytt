@@ -121,14 +121,20 @@ export function RegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Kayıt Ol</CardTitle>
-        <CardDescription>
-          YTT platformuna katılmak için bilgilerinizi girin
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div
+      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat relative py-8"
+      style={{ backgroundImage: 'url(/assets/background.jpg)' }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+      <Card className="w-full max-w-md relative z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-2xl">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Kayıt Ol</CardTitle>
+          <CardDescription>
+            YTT platformuna katılmak için bilgilerinizi girin
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -364,6 +370,7 @@ export function RegisterForm() {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }
 

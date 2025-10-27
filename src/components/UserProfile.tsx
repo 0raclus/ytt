@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Mail, Bell, Shield, Calendar, Heart, Settings, Save, Award, Lock } from 'lucide-react';
+import { User, Bell, Shield, Calendar, Settings, Save, Award } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventContext';
@@ -53,7 +53,13 @@ export function UserProfile() {
 
   const handleSaveProfile = async () => {
     try {
-      const result = await updateProfile(profile);
+      const result = await updateProfile({
+        full_name: profile.name,
+        phone: profile.phone,
+        department: profile.department,
+        student_level: profile.level,
+      });
+
       if (result.success) {
         toast({
           title: "Profil Güncellendi!",
@@ -455,52 +461,6 @@ export function UserProfile() {
               <Button onClick={handleSavePreferences} className="w-full">
                 <Save className="h-4 w-4 mr-2" />
                 Tercihleri Kaydet
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Password Change */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Lock className="h-5 w-5" />
-                <span>Şifre Değiştir</span>
-              </CardTitle>
-              <CardDescription>
-                Hesap güvenliğiniz için güçlü bir şifre kullanın.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Mevcut Şifre</Label>
-                <Input
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Yeni Şifre</Label>
-                <Input
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Yeni Şifre Tekrar</Label>
-                <Input
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                />
-              </div>
-
-              <Button onClick={handleChangePassword} className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-                Şifreyi Değiştir
               </Button>
             </CardContent>
           </Card>

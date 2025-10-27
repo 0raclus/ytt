@@ -168,7 +168,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: 'Kullanıcı oturumu bulunamadı' };
       }
 
-      const response = await neonClient.put(`/users/${user.id}`, updates);
+      const response = await neonClient.put('/profile/update', {
+        email: user.email,
+        full_name: updates.full_name,
+        phone: updates.phone,
+        department: updates.department,
+        student_level: updates.student_level,
+      });
 
       if (response.data) {
         setUser(response.data);

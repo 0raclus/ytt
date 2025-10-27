@@ -246,6 +246,53 @@ app.get('/api/blog', async (req, res) => {
   }
 });
 
+// Profile update endpoint
+app.put('/api/profile/update', async (req, res) => {
+  try {
+    const { email, full_name, phone, department, student_level } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    console.log('🔄 Updating profile for:', email);
+
+    const result = await sql`
+      UPDATE user_profiles
+      SET
+        full_name = ${full_name},
+        phone = ${phone || null},
+        department = ${department || null},
+        student_level = ${student_level || null},
+        updated_at = NOW()
+      WHERE email = ${email}
+      RETURNING *
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result[0];
+    console.log('✅ Profile updated:', user.email);
+
+    res.json({
+      id: user.user_id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      phone: user.phone,
+      bio: user.bio,
+      department: user.department,
+      student_level: user.student_level,
+    });
+  } catch (error) {
+    console.error('❌ Profile update error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Dev API Server running on http://localhost:${PORT}`);
   console.log(`📡 API endpoints available at http://localhost:${PORT}/api/*`);
