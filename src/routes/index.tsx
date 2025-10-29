@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, RouteObject } from 'react-router-dom';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { AdminLayout } from '@/components/layouts/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 const LoadingFallback = () => (
@@ -45,6 +46,7 @@ const publicRoutes: RouteObject[] = [
   {
     path: '/',
     element: <PublicLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
@@ -142,6 +144,7 @@ const adminRoutes: RouteObject[] = [
         <AdminLayout />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
@@ -246,13 +249,25 @@ const authRoutes: RouteObject[] = [
   },
 ];
 
-export const router = createBrowserRouter([
-  ...publicRoutes,
-  ...adminRoutes,
-  ...authRoutes,
+export const router = createBrowserRouter(
+  [
+    ...publicRoutes,
+    ...adminRoutes,
+    ...authRoutes,
+    {
+      path: '*',
+      element: (
+        <Suspense fallback={<LoadingFallback />}>
+          <NotFoundPage />
+        </Suspense>
+      ),
+    },
+  ],
   {
-    path: '*',
-    element: <NotFoundPage />,
-  },
-]);
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  }
+);
 
