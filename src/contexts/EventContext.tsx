@@ -297,7 +297,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
     try {
       const response = await neonClient.post('/registrations', {
         event_id: eventId,
-        user_id: user.id
+        user_id: user.id  // PostgreSQL UUID from sync-firebase-user
       });
 
       if (response.data) {

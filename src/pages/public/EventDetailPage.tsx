@@ -58,7 +58,7 @@ export default function EventDetailPage() {
     if (!user || !id) return;
 
     try {
-      const response = await neonClient.get(`/registrations/check?user_id=${user.uid}&event_id=${id}`);
+      const response = await neonClient.get(`/registrations/check?user_id=${user.id}&event_id=${id}`);
       setIsRegistered(response.data?.isRegistered || false);
     } catch (error) {
       // No registration found is not an error
@@ -80,7 +80,7 @@ export default function EventDetailPage() {
     setRegistering(true);
     try {
       const response = await neonClient.post('/registrations', {
-        user_id: user!.uid,
+        user_id: user!.id,
         event_id: id,
       });
 
