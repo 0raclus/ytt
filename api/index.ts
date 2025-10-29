@@ -43,6 +43,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const path = req.url?.split('?')[0].replace('/api', '') || '/';
 
+  // Route: GET /health (debug endpoint)
+  if (path === '/health' && req.method === 'GET') {
+    return res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      env: {
+        hasDatabaseUrl: !!DATABASE_URL,
+        databaseUrlLength: DATABASE_URL?.length || 0,
+        databaseUrlPrefix: DATABASE_URL?.substring(0, 20) || 'not set',
+        nodeEnv: process.env.NODE_ENV,
+        allEnvKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY') && !k.includes('TOKEN'))
+      }
+    });
+  }
+
   // Route: GET /categories
   if (path === '/categories' && req.method === 'GET') {
     return handleGetCategories(req, res);
