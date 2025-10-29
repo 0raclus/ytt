@@ -1,15 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { neon } from '@neondatabase/serverless';
+import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 
 const DATABASE_URL = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL;
-
-if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
-}
-
-const sql = neon(DATABASE_URL);
-
 const ADMIN_EMAILS = ['klausmullermaxwell@gmail.com'];
+
+let sql: NeonQueryFunction<false, false> | null = null;
+
+function getSql(): NeonQueryFunction<false, false> {
+  if (!DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  if (!sql) {
+    sql = neon(DATABASE_URL);
+  }
+  return sql;
+}
 
 function setCorsHeaders(res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,13 +23,25 @@ function setCorsHeaders(res: VercelResponse) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  setCorsHeaders(res);
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  try {
+    const sql = getSql();
+    setCorsHeaders(res);
 
-  const path = req.url?.split('?')[0].replace('/api', '') || '/';
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    // Check DATABASE_URL
+    if (!DATABASE_URL) {
+      console.error('DATABASE_URL is not set. Available env vars:', Object.keys(process.env));
+      return res.status(500).json({
+        error: 'Database configuration error',
+        message: 'DATABASE_URL environment variable is not set',
+        availableEnvVars: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY'))
+      });
+    }
+
+    const path = req.url?.split('?')[0].replace('/api', '') || '/';
 
   // Route: GET /categories
   if (path === '/categories' && req.method === 'GET') {
@@ -104,16 +121,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (path === '/profile/update' && req.method === 'PUT') {
     return handleUpdateProfile(req, res);
   }
-  
+
   return res.status(404).json({ data: null, error: { message: 'Not found' } });
+  } catch (error: any) {
+    console.error('Handler error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
+
+// Helper to get SQL client
+function getSql() {
+  if (!DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured');
+  }
+  return neon(DATABASE_URL);
 }
 
 // Categories
 async function handleGetCategories(req: VercelRequest, res: VercelResponse) {
   try {
+   const sql = getSql();
+     const sql = getSql();
     const categories = await sql`SELECT * FROM event_categories ORDER BY name ASC`;
     return res.status(200).json({ data: categories, error: null });
   } catch (error: any) {
+    console.error('handleGetCategories error:', error);
     return res.status(500).json({ data: null, error: { message: error.message } });
   }
 }
@@ -121,6 +157,8 @@ async function handleGetCategories(req: VercelRequest, res: VercelResponse) {
 // Users
 async function handleGetUsers(req: VercelRequest, res: VercelResponse) {
   try {
+   const sql = getSql();
+     const sql = getSql();
     const users = await sql`
       SELECT user_id as id, email, full_name, role, created_at, last_login
       FROM user_profiles
@@ -128,6 +166,7 @@ async function handleGetUsers(req: VercelRequest, res: VercelResponse) {
     `;
     return res.status(200).json({ data: users, error: null });
   } catch (error: any) {
+    console.error('handleGetUsers error:', error);
     return res.status(500).json({ data: null, error: { message: error.message } });
   }
 }
@@ -135,9 +174,12 @@ async function handleGetUsers(req: VercelRequest, res: VercelResponse) {
 // Plants
 async function handleGetPlants(req: VercelRequest, res: VercelResponse) {
   try {
+   const sql = getSql();
+     const sql = getSql();
     const plants = await sql`SELECT * FROM plants ORDER BY name ASC`;
     return res.status(200).json({ data: plants, error: null });
   } catch (error: any) {
+    console.error('handleGetPlants error:', error);
     return res.status(500).json({ data: null, error: { message: error.message } });
   }
 }
@@ -145,6 +187,8 @@ async function handleGetPlants(req: VercelRequest, res: VercelResponse) {
 // Blog
 async function handleGetBlog(req: VercelRequest, res: VercelResponse) {
   try {
+   const sql = getSql();
+     const sql = getSql();
     const posts = await sql`
       SELECT * FROM blog_posts
       WHERE status = 'published'
@@ -159,6 +203,7 @@ async function handleGetBlog(req: VercelRequest, res: VercelResponse) {
 // Events - GET all
 async function handleGetEvents(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { status, category, difficulty } = req.query;
     let whereClause = 'WHERE 1=1';
     if (status) whereClause += ` AND e.status = '${status}'`;
@@ -202,6 +247,7 @@ async function handleGetEvents(req: VercelRequest, res: VercelResponse) {
 // Events - POST create
 async function handleCreateEvent(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { title, description, date, time, location, capacity, category, requirements, image_url, instructor, duration, difficulty, user_id } = req.body;
     if (!title || !description || !date || !time || !location || !capacity || !category) {
       return res.status(400).json({ data: null, error: { message: 'Missing required fields' } });
@@ -225,6 +271,7 @@ async function handleCreateEvent(req: VercelRequest, res: VercelResponse) {
 // Events - GET stats
 async function handleGetEventStats(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const stats = await sql`
       SELECT
         COUNT(*) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month') as monthly_events,
@@ -245,6 +292,7 @@ async function handleGetEventStats(req: VercelRequest, res: VercelResponse) {
 // Events - GET single
 async function handleGetEvent(id: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const events = await sql`
       SELECT e.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon, c.color as category_color
       FROM events e
@@ -263,6 +311,7 @@ async function handleGetEvent(id: string, req: VercelRequest, res: VercelRespons
 // Events - PUT update
 async function handleUpdateEvent(id: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { title, description, date, time, location, capacity, category, requirements, image_url, instructor, duration, difficulty, status } = req.body;
     let categoryId = null;
     if (category) {
@@ -300,6 +349,7 @@ async function handleUpdateEvent(id: string, req: VercelRequest, res: VercelResp
 // Events - DELETE
 async function handleDeleteEvent(id: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const deleted = await sql`DELETE FROM events WHERE id = ${id} RETURNING id`;
     if (deleted.length === 0) {
       return res.status(404).json({ data: null, error: { message: 'Event not found' } });
@@ -313,6 +363,7 @@ async function handleDeleteEvent(id: string, req: VercelRequest, res: VercelResp
 // Registrations - POST create
 async function handleCreateRegistration(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { event_id, user_id, notes } = req.body;
     if (!event_id || !user_id) {
       return res.status(400).json({ data: null, error: { message: 'Missing event_id or user_id' } });
@@ -355,6 +406,7 @@ async function handleCreateRegistration(req: VercelRequest, res: VercelResponse)
 // Registrations - DELETE
 async function handleDeleteRegistration(id: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const registrations = await sql`SELECT * FROM event_registrations WHERE id = ${id}`;
     if (registrations.length === 0) {
       return res.status(404).json({ data: null, error: { message: 'Registration not found' } });
@@ -379,6 +431,7 @@ async function handleDeleteRegistration(id: string, req: VercelRequest, res: Ver
 // Registrations - GET check
 async function handleCheckRegistration(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { event_id, user_id } = req.query;
     if (!event_id || !user_id) {
       return res.status(400).json({ data: null, error: { message: 'Missing event_id or user_id' } });
@@ -398,6 +451,7 @@ async function handleCheckRegistration(req: VercelRequest, res: VercelResponse) 
 // Registrations - GET user registrations
 async function handleGetUserRegistrations(userId: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const registrations = await sql`
       SELECT r.*, e.title, e.date, e.time, e.location
       FROM event_registrations r
@@ -414,6 +468,7 @@ async function handleGetUserRegistrations(userId: string, req: VercelRequest, re
 // Registrations - GET event registrations
 async function handleGetEventRegistrations(eventId: string, req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const registrations = await sql`
       SELECT r.id, r.event_id, r.user_id, r.status, r.notes, r.created_at,
         u.email, u.full_name, u.phone, u.department, u.student_level
@@ -448,6 +503,7 @@ async function handleGetEventRegistrations(eventId: string, req: VercelRequest, 
 // Auth - Sync Firebase user
 async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { firebase_uid, email, full_name, avatar_url } = req.body;
     const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'user';
 
@@ -472,6 +528,7 @@ async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
 // Profile - Update
 async function handleUpdateProfile(req: VercelRequest, res: VercelResponse) {
   try {
+    const sql = getSql();
     const { user_id, full_name, phone, department, student_level } = req.body;
     if (!user_id) {
       return res.status(400).json({ data: null, error: { message: 'Missing user_id' } });
