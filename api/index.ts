@@ -1,12 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 
-const DATABASE_URL = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL;
 const ADMIN_EMAILS = ['klausmullermaxwell@gmail.com'];
 
 let sql: NeonQueryFunction<false, false> | null = null;
 
 function getSql(): NeonQueryFunction<false, false> {
+  const DATABASE_URL = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL;
+
   if (!DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
@@ -31,20 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).end();
     }
 
-    // Check DATABASE_URL
-    if (!DATABASE_URL) {
-      console.error('DATABASE_URL is not set. Available env vars:', Object.keys(process.env));
-      return res.status(500).json({
-        error: 'Database configuration error',
-        message: 'DATABASE_URL environment variable is not set',
-        availableEnvVars: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY'))
-      });
-    }
-
     const path = req.url?.split('?')[0].replace('/api', '') || '/';
 
   // Route: GET /health (debug endpoint)
   if (path === '/health' && req.method === 'GET') {
+    const DATABASE_URL = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL;
     return res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),
