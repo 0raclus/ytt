@@ -514,15 +514,15 @@ async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
     console.log('User role:', role, 'Admin emails:', ADMIN_EMAILS);
 
     const result = await sql`
-      INSERT INTO user_profiles (user_id, email, full_name, avatar_url, role)
+      INSERT INTO user_profiles (firebase_uid, email, full_name, avatar_url, role)
       VALUES (${firebase_uid}, ${email}, ${full_name || email.split('@')[0]}, ${avatar_url || null}, ${role})
-      ON CONFLICT (user_id) DO UPDATE SET
+      ON CONFLICT (firebase_uid) DO UPDATE SET
         email = EXCLUDED.email,
         full_name = EXCLUDED.full_name,
         avatar_url = EXCLUDED.avatar_url,
         role = EXCLUDED.role,
         last_login = NOW()
-      RETURNING user_id, email, full_name, avatar_url, role
+      RETURNING user_id, firebase_uid, email, full_name, avatar_url, role
     `;
 
     console.log('Sync result:', result[0]);
