@@ -132,20 +132,33 @@ export function LoginForm() {
           </Alert>
         )}
 
-        <Button
-          type="button"
-          size="lg"
-          className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 shadow-sm"
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          ) : (
-            <GoogleIcon />
-          )}
-          <span className="ml-2 font-medium">Google ile Giriş Yap</span>
-        </Button>
+        <div className="space-y-3">
+          <Button
+            type="button"
+            size="lg"
+            className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 shadow-sm"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            <span className="ml-2 font-medium">Google ile Giriş Yap</span>
+          </Button>
+
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate('/register')}
+            disabled={isLoading}
+          >
+            <span className="font-medium">Google ile Kayıt Ol</span>
+          </Button>
+        </div>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
           Giriş yaparak{' '}
