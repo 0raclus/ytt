@@ -25,7 +25,6 @@ function setCorsHeaders(res: VercelResponse) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const sql = getSql();
     setCorsHeaders(res);
 
     if (req.method === 'OPTIONS') {
@@ -140,19 +139,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-// Helper to get SQL client
-function getSql() {
-  if (!DATABASE_URL) {
-    throw new Error('DATABASE_URL is not configured');
-  }
-  return neon(DATABASE_URL);
-}
-
 // Categories
 async function handleGetCategories(req: VercelRequest, res: VercelResponse) {
   try {
    const sql = getSql();
-     const sql = getSql();
     const categories = await sql`SELECT * FROM event_categories ORDER BY name ASC`;
     return res.status(200).json({ data: categories, error: null });
   } catch (error: any) {
@@ -165,7 +155,6 @@ async function handleGetCategories(req: VercelRequest, res: VercelResponse) {
 async function handleGetUsers(req: VercelRequest, res: VercelResponse) {
   try {
    const sql = getSql();
-     const sql = getSql();
     const users = await sql`
       SELECT user_id as id, email, full_name, role, created_at, last_login
       FROM user_profiles
@@ -182,7 +171,6 @@ async function handleGetUsers(req: VercelRequest, res: VercelResponse) {
 async function handleGetPlants(req: VercelRequest, res: VercelResponse) {
   try {
    const sql = getSql();
-     const sql = getSql();
     const plants = await sql`SELECT * FROM plants ORDER BY name ASC`;
     return res.status(200).json({ data: plants, error: null });
   } catch (error: any) {
@@ -195,7 +183,6 @@ async function handleGetPlants(req: VercelRequest, res: VercelResponse) {
 async function handleGetBlog(req: VercelRequest, res: VercelResponse) {
   try {
    const sql = getSql();
-     const sql = getSql();
     const posts = await sql`
       SELECT * FROM blog_posts
       WHERE status = 'published'
