@@ -55,7 +55,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
           category: e.category_slug || 'workshop',
           requirements: e.requirements || [],
           image: e.image_url || 'https://images.pexels.com/photos/1402787/pexels-photo-1402787.jpeg',
-          instructor: e.instructor,
+          instructor: e.instructor || 'Eğitmen Belirtilmemiş',
           duration: e.duration || '2 saat',
           difficulty: e.difficulty || 'beginner'
         }));

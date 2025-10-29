@@ -266,10 +266,16 @@ async function handleCreateEvent(req: VercelRequest, res: VercelResponse) {
 async function handleGetEventStats(req: VercelRequest, res: VercelResponse) {
   try {
     const sql = getSql();
+    const { user_id } = req.query;
+
+    // Get monthly stats
     const stats = await sql`
       SELECT
-        COUNT(*) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month') as monthly_events,
-        COALESCE(SUM(registered_count) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'), 0) as monthly_registrations,
+        COUNT(*) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month') as this_month_events,
+        COUNT(*) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' AND date < DATE_TRUNC('month', CURRENT_DATE)) as last_month_events,
+        COALESCE(SUM(registered_count) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'), 0) as total_registrations,
+        COALESCE(SUM(registered_count) FILTER (WHERE date >= DATE_TRUNC('week', CURRENT_DATE) AND date < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week'), 0) as this_week_registrations,
+        COALESCE(SUM(registered_count) FILTER (WHERE date >= DATE_TRUNC('week', CURRENT_DATE) - INTERVAL '1 week' AND date < DATE_TRUNC('week', CURRENT_DATE)), 0) as last_week_registrations,
         CASE
           WHEN SUM(capacity) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month') > 0
           THEN ROUND((SUM(registered_count) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month')::numeric / SUM(capacity) FILTER (WHERE date >= DATE_TRUNC('month', CURRENT_DATE) AND date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month')::numeric) * 100, 1)
@@ -277,7 +283,35 @@ async function handleGetEventStats(req: VercelRequest, res: VercelResponse) {
         END as fill_rate
       FROM events
     `;
-    return res.status(200).json({ data: stats[0], error: null });
+
+    // Get user-specific stats if user_id provided
+    let userRegisteredCount = 0;
+    if (user_id) {
+      const userStats = await sql`
+        SELECT COUNT(*) as count
+        FROM event_registrations
+        WHERE user_id = ${user_id as string}
+      `;
+      userRegisteredCount = parseInt(userStats[0]?.count || '0');
+    }
+
+    const result = stats[0];
+    const thisMonthEvents = parseInt(result.this_month_events || '0');
+    const lastMonthEvents = parseInt(result.last_month_events || '0');
+    const thisWeekRegistrations = parseInt(result.this_week_registrations || '0');
+    const lastWeekRegistrations = parseInt(result.last_week_registrations || '0');
+
+    return res.status(200).json({
+      data: {
+        thisMonthEvents,
+        newEventsThisMonth: Math.max(0, thisMonthEvents - lastMonthEvents),
+        totalRegistrations: parseInt(result.total_registrations || '0'),
+        newRegistrationsThisWeek: Math.max(0, thisWeekRegistrations - lastWeekRegistrations),
+        fillRate: parseFloat(result.fill_rate || '0'),
+        userRegisteredCount
+      },
+      error: null
+    });
   } catch (error: any) {
     return res.status(500).json({ data: null, error: { message: error.message } });
   }

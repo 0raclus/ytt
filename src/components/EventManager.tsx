@@ -45,7 +45,7 @@ export function EventManager() {
 
   const loadStats = async () => {
     try {
-      const userId = user?.uid || '';
+      const userId = user?.id || ''; // PostgreSQL UUID from sync-firebase-user
       const response = await neonClient.get(`/events/stats?user_id=${userId}`);
 
       if (response.error) {

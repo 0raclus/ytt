@@ -223,7 +223,7 @@ export default function EventsPage() {
           requirements,
           image_url: formData.image_url,
           status: formData.status || 'active',
-          user_id: user?.uid,
+          user_id: user?.id, // PostgreSQL UUID from sync-firebase-user
         });
 
         if (response.error) throw new Error(response.error.message);

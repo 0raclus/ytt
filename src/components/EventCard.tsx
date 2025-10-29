@@ -51,7 +51,7 @@ export function EventCard({ event, onRegister, isRegistered, showAdminActions = 
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg font-semibold">{event.title}</CardTitle>
-            <CardDescription>{event.instructor}</CardDescription>
+            <CardDescription>{event.instructor || 'Eğitmen Belirtilmemiş'}</CardDescription>
           </div>
           <Badge className={categoryColors[event.category]}>
             {event.category === 'workshop' && 'Atölye'}
