@@ -499,7 +499,19 @@ async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
   try {
     const sql = getSql();
     const { firebase_uid, email, full_name, avatar_url } = req.body;
+
+    console.log('Sync Firebase User:', { firebase_uid, email, full_name, avatar_url });
+
+    if (!firebase_uid || !email) {
+      console.error('Missing required fields:', { firebase_uid, email });
+      return res.status(400).json({
+        data: null,
+        error: { message: 'firebase_uid and email are required' }
+      });
+    }
+
     const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'user';
+    console.log('User role:', role, 'Admin emails:', ADMIN_EMAILS);
 
     const result = await sql`
       INSERT INTO user_profiles (user_id, email, full_name, avatar_url, role)
@@ -513,8 +525,10 @@ async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
       RETURNING user_id, email, full_name, avatar_url, role
     `;
 
+    console.log('Sync result:', result[0]);
     return res.status(200).json({ data: result[0], error: null });
   } catch (error: any) {
+    console.error('handleSyncFirebaseUser error:', error);
     return res.status(500).json({ data: null, error: { message: error.message } });
   }
 }
