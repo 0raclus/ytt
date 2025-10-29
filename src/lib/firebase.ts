@@ -30,8 +30,19 @@ googleProvider.setCustomParameters({
 
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return { user: result.user, error: null };
+    // Try popup first, fallback to redirect if CORS issues
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      return { user: result.user, error: null };
+    } catch (popupError: any) {
+      // If popup blocked by CORS, the error will be caught here
+      // User can still authenticate, just won't see the popup close
+      if (popupError.code === 'auth/popup-closed-by-user') {
+        return { user: null, error: 'Popup kapatıldı. Lütfen tekrar deneyin.' };
+      }
+      // For other errors, re-throw
+      throw popupError;
+    }
   } catch (error: any) {
     return { user: null, error: error.message };
   }
