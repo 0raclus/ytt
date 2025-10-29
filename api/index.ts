@@ -1,11 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { neon } from '@neondatabase/serverless';
 
-if (!process.env.VITE_DATABASE_URL) {
-  throw new Error('VITE_DATABASE_URL is not set');
+const DATABASE_URL = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set');
 }
 
-const sql = neon(process.env.VITE_DATABASE_URL);
+const sql = neon(DATABASE_URL);
 
 const ADMIN_EMAILS = ['klausmullermaxwell@gmail.com'];
 
@@ -22,23 +24,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const path = req.url?.replace('/api', '') || '/';
-  
+  const path = req.url?.split('?')[0].replace('/api', '') || '/';
+
   // Route: GET /categories
   if (path === '/categories' && req.method === 'GET') {
     return handleGetCategories(req, res);
   }
-  
+
   // Route: GET /users
   if (path === '/users' && req.method === 'GET') {
     return handleGetUsers(req, res);
   }
-  
+
   // Route: GET /plants
   if (path === '/plants' && req.method === 'GET') {
     return handleGetPlants(req, res);
   }
-  
+
   // Route: GET /blog
   if (path === '/blog' && req.method === 'GET') {
     return handleGetBlog(req, res);
