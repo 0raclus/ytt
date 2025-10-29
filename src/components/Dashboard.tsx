@@ -109,7 +109,7 @@ export function Dashboard() {
       <div className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight">YTT Dashboard</h1>
         <p className="text-lg text-muted-foreground">
-          Yenilikçi Teknoloji Takımı etkinlik platformuna hoş geldiniz.
+          Yaşayan Tasarım Topluluğu etkinlik platformuna hoş geldiniz.
         </p>
       </div>
 

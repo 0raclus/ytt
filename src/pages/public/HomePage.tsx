@@ -79,7 +79,7 @@ export default function HomePage() {
               Doğayla Bağlan, Yeşille Büyü
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Yenilikçi Teknoloji Takımı ile bitki yetiştirme, etkinlikler ve doğa tutkusu bir arada!
+              Yaşayan Tasarım Topluluğu ile bitki yetiştirme, etkinlikler ve doğa tutkusu bir arada!
             </p>
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Link to="/events">

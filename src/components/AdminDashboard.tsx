@@ -112,7 +112,7 @@ export function AdminDashboard() {
 
       <footer className="border-t bg-card mt-16">
         <div className="container mx-auto px-8 py-6 text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 YTT - Yenilikçi Teknoloji Takımı</p>
+          <p>&copy; 2025 YTT - Yaşayan Tasarım Topluluğu</p>
           <p className="mt-1">Admin Yönetim Paneli</p>
         </div>
       </footer>

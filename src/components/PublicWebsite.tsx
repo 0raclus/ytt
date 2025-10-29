@@ -102,7 +102,7 @@ export function PublicWebsite() {
             Doğayla Bağlan, Yeşille Büyü
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            Yenilikçi Teknoloji Takımı ile bitki yetiştirme, etkinlikler ve doğa tutkusu bir arada!
+            Yaşayan Tasarım Topluluğu ile bitki yetiştirme, etkinlikler ve doğa tutkusu bir arada!
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" onClick={() => setActiveView('events')} className="text-lg px-8">
@@ -518,7 +518,7 @@ export function PublicWebsite() {
             </div>
             <div>
               <h1 className="text-xl font-bold">YTT Platform</h1>
-              <p className="text-xs text-muted-foreground hidden md:block">Yenilikçi Teknoloji Takımı</p>
+              <p className="text-xs text-muted-foreground hidden md:block">Yaşayan Tasarım Topluluğu</p>
             </div>
           </div>
 
@@ -595,7 +595,7 @@ export function PublicWebsite() {
                 <span className="font-bold text-lg">YTT</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Yenilikçi Teknoloji Takımı - Doğa ve teknoloji bir arada
+                Yaşayan Tasarım Topluluğu - Doğa ve teknoloji bir arada
               </p>
             </div>
 
@@ -634,7 +634,7 @@ export function PublicWebsite() {
           </div>
 
           <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2025 Yenilikçi Teknoloji Takımı. Tüm hakları saklıdır.</p>
+            <p>&copy; 2025 Yaşayan Tasarım Topluluğu. Tüm hakları saklıdır.</p>
           </div>
         </div>
       </footer>

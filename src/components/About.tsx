@@ -88,7 +88,7 @@ export function About() {
           <div>
             <h1 className="text-4xl font-bold tracking-tight">YTT Hakkında</h1>
             <p className="text-lg text-muted-foreground">
-              Yenilikçi Teknoloji Takımı - Doğa ve teknoloji buluşuyor
+              Yaşayan Tasarım Topluluğu - Doğa ve teknoloji buluşuyor
             </p>
           </div>
         </div>

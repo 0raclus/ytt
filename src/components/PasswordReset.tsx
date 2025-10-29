@@ -240,7 +240,7 @@ export function PasswordReset() {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 YTT - Yenilikçi Teknoloji Takımı</p>
+          <p>&copy; 2025 YTT - Yaşayan Tasarım Topluluğu</p>
         </div>
       </div>
     </div>
