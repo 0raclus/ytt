@@ -513,17 +513,35 @@ async function handleSyncFirebaseUser(req: VercelRequest, res: VercelResponse) {
     const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'user';
     console.log('User role:', role, 'Admin emails:', ADMIN_EMAILS);
 
-    const result = await sql`
-      INSERT INTO user_profiles (firebase_uid, email, full_name, avatar_url, role)
-      VALUES (${firebase_uid}, ${email}, ${full_name || email.split('@')[0]}, ${avatar_url || null}, ${role})
-      ON CONFLICT (firebase_uid) DO UPDATE SET
-        email = EXCLUDED.email,
-        full_name = EXCLUDED.full_name,
-        avatar_url = EXCLUDED.avatar_url,
-        role = EXCLUDED.role,
-        last_login = NOW()
-      RETURNING user_id, firebase_uid, email, full_name, avatar_url, role
+    // First, try to find existing user by email or firebase_uid
+    const existing = await sql`
+      SELECT user_id, firebase_uid, email, full_name, avatar_url, role
+      FROM user_profiles
+      WHERE email = ${email} OR firebase_uid = ${firebase_uid}
+      LIMIT 1
     `;
+
+    let result;
+    if (existing.length > 0) {
+      // Update existing user
+      result = await sql`
+        UPDATE user_profiles
+        SET firebase_uid = ${firebase_uid},
+            full_name = ${full_name || email.split('@')[0]},
+            avatar_url = ${avatar_url || null},
+            role = ${role},
+            last_login = NOW()
+        WHERE email = ${email} OR firebase_uid = ${firebase_uid}
+        RETURNING user_id, firebase_uid, email, full_name, avatar_url, role
+      `;
+    } else {
+      // Insert new user
+      result = await sql`
+        INSERT INTO user_profiles (firebase_uid, email, full_name, avatar_url, role)
+        VALUES (${firebase_uid}, ${email}, ${full_name || email.split('@')[0]}, ${avatar_url || null}, ${role})
+        RETURNING user_id, firebase_uid, email, full_name, avatar_url, role
+      `;
+    }
 
     console.log('Sync result:', result[0]);
     return res.status(200).json({ data: result[0], error: null });
