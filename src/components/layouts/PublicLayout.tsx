@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
+import YTTLogo from '@/images/YTT_Kalem.svg';
 
 export function PublicLayout() {
   const { user, logout, isAdmin } = useAuth();
@@ -47,11 +48,11 @@ export function PublicLayout() {
           <div className="h-16 flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-md p-1.5">
                 <img
-                  src="/assets/ytt-logo.png"
+                  src={YTTLogo}
                   alt="YTT Logo"
-                  className="h-8 w-8 md:h-10 md:w-10 object-contain"
+                  className="h-full w-full object-contain"
                 />
               </div>
               <div className="min-w-0">
@@ -193,8 +194,8 @@ export function PublicLayout() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <Leaf className="h-5 w-5 text-white" />
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md p-1">
+                  <img src={YTTLogo} alt="YTT Logo" className="h-full w-full object-contain" />
                 </div>
                 <span className="font-bold text-lg">{config.app.name}</span>
               </div>

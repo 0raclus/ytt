@@ -1,5 +1,6 @@
 import React from 'react';
 import { RegisterForm } from '@/components/auth/RegisterForm';
+import YTTLogo from '@/images/YTT_Kalem.svg';
 
 export default function RegisterPage() {
   return (
@@ -22,9 +23,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-8 relative z-10 px-4">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-white rounded-full p-3 shadow-lg">
+            <div className="bg-white rounded-full p-4 shadow-lg">
               <img
-                src="/assets/ytt-logo.png"
+                src={YTTLogo}
                 alt="YTT Logo"
                 className="h-16 w-16 object-contain"
               />

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import YTTLogo from '@/images/YTT_Kalem.svg';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -46,9 +47,9 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-white rounded-full p-3 shadow-lg">
+            <div className="bg-white rounded-full p-4 shadow-lg">
               <img
-                src="/assets/ytt-logo.png"
+                src={YTTLogo}
                 alt="YTT Logo"
                 className="h-16 w-16 object-contain"
               />

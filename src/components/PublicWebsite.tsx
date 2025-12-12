@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import YTTLogo from '@/images/YTT_Kalem.svg';
 
 export function PublicWebsite() {
   const { user, logout } = useAuth();
@@ -513,8 +514,8 @@ export function PublicWebsite() {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-              <Leaf className="h-6 w-6 text-white" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md p-1.5">
+              <img src={YTTLogo} alt="YTT Logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold">YTT Platform</h1>
@@ -589,8 +590,8 @@ export function PublicWebsite() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <Leaf className="h-6 w-6 text-white" />
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md p-1.5">
+                  <img src={YTTLogo} alt="YTT Logo" className="h-full w-full object-contain" />
                 </div>
                 <span className="font-bold text-lg">YTT</span>
               </div>
