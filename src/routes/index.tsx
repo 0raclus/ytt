@@ -29,6 +29,7 @@ const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
 const ResourcesPage = lazy(() => import('@/pages/public/ResourcesPage'));
 const ProfilePage = lazy(() => import('@/pages/public/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/pages/public/NotificationsPage'));
+const TeamPage = lazy(() => import('@/pages/public/TeamPage'));
 
 const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage'));
 const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage'));
@@ -130,6 +131,14 @@ const publicRoutes: RouteObject[] = [
               <NotificationsPage />
             </Suspense>
           </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'team',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <TeamPage />
+          </Suspense>
         ),
       },
     ],

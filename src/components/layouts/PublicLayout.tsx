@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Leaf, Calendar, BookOpen, FileText, User, Bell, LogOut,
-  Menu, X, Moon, Sun, Home, Mail, Phone, MapPin
+  Menu, X, Moon, Sun, Home, Mail, Phone, MapPin, Users
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
@@ -36,6 +36,7 @@ export function PublicLayout() {
     { path: '/plants', label: 'Bitkiler', icon: Leaf },
     { path: '/blog', label: 'Blog', icon: BookOpen },
     { path: '/resources', label: 'Kaynaklar', icon: FileText },
+    { path: '/team', label: 'Ekibimiz', icon: Users },
   ];
 
   return (

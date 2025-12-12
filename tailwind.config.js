@@ -150,6 +150,14 @@ export default {
             backgroundPosition: '1000px 0',
           },
         },
+        'spin-slow': {
+          '0%': {
+            transform: 'rotate(0deg)',
+          },
+          '100%': {
+            transform: 'rotate(360deg)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -161,6 +169,7 @@ export default {
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
         'shimmer': 'shimmer 3s linear infinite',
+        'spin-slow': 'spin-slow 8s linear infinite',
       },
     },
   },
