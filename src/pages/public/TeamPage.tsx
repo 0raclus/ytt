@@ -1,5 +1,11 @@
 import { Users, Heart, Sparkles, Star } from 'lucide-react';
 
+import team2 from '@/images/2.png';
+import team3 from '@/images/3.png';
+import team4 from '@/images/4.png';
+import team5 from '@/images/5.png';
+import team6 from '@/images/6.png';
+import team7 from '@/images/7.png';
 import team8 from '@/images/8.png';
 import team9 from '@/images/9.png';
 import team10 from '@/images/10.png';
@@ -11,23 +17,25 @@ import team15 from '@/images/15.png';
 import team16 from '@/images/16.png';
 import team17 from '@/images/17.png';
 import team18 from '@/images/18.png';
-import team19 from '@/images/19.png';
-import team20 from '@/images/20.png';
 
 const teamMembers = [
-  { id: 1, image: team8, name: 'Ekip Üyesi', delay: '0s' },
-  { id: 2, image: team9, name: 'Ekip Üyesi', delay: '0.1s' },
-  { id: 3, image: team10, name: 'Ekip Üyesi', delay: '0.2s' },
-  { id: 4, image: team11, name: 'Ekip Üyesi', delay: '0.3s' },
-  { id: 5, image: team12, name: 'Ekip Üyesi', delay: '0.4s' },
-  { id: 6, image: team13, name: 'Ekip Üyesi', delay: '0.5s' },
-  { id: 7, image: team14, name: 'Ekip Üyesi', delay: '0.6s' },
-  { id: 8, image: team15, name: 'Ekip Üyesi', delay: '0.7s' },
-  { id: 9, image: team16, name: 'Ekip Üyesi', delay: '0.8s' },
-  { id: 10, image: team17, name: 'Ekip Üyesi', delay: '0.9s' },
-  { id: 11, image: team18, name: 'Ekip Üyesi', delay: '1.0s' },
-  { id: 12, image: team19, name: 'Ekip Üyesi', delay: '1.1s' },
-  { id: 13, image: team20, name: 'Ekip Üyesi', delay: '1.2s' },
+  { id: 1, image: team2, name: 'Zekeriya Can Erbil', delay: '0s' },
+  { id: 2, image: team3, name: 'Tuba Yılmaz', delay: '0.05s' },
+  { id: 3, image: team4, name: 'Nur Tunç', delay: '0.1s' },
+  { id: 4, image: team5, name: 'Arda Türkmen', delay: '0.15s' },
+  { id: 5, image: team6, name: 'Esra Yüksel', delay: '0.2s' },
+  { id: 6, image: team7, name: 'Bengisu Köten', delay: '0.25s' },
+  { id: 7, image: team8, name: 'Gülnisa Pancar', delay: '0.3s' },
+  { id: 8, image: team9, name: 'Maşide Duman', delay: '0.35s' },
+  { id: 9, image: team10, name: 'Ebrar Kurşun', delay: '0.4s' },
+  { id: 10, image: team11, name: 'Şeyma Acar', delay: '0.45s' },
+  { id: 11, image: team12, name: 'Esma Şahin', delay: '0.5s' },
+  { id: 12, image: team13, name: 'Sude Eker', delay: '0.55s' },
+  { id: 13, image: team14, name: 'Betül Zehra Bilgen', delay: '0.6s' },
+  { id: 14, image: team15, name: 'Aysu Polatel', delay: '0.65s' },
+  { id: 15, image: team16, name: 'Emirhan Akgün', delay: '0.7s' },
+  { id: 16, image: team17, name: 'Miray Z. Kurban', delay: '0.75s' },
+  { id: 17, image: team18, name: 'Tuğbanur Kaya', delay: '0.8s' },
 ];
 
 export default function TeamPage() {
@@ -82,21 +90,21 @@ export default function TeamPage() {
           </div>
 
           {/* Team Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-10">
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="group relative animate-fade-in-up"
+                className="group relative animate-fade-in-up flex flex-col items-center"
                 style={{ animationDelay: member.delay }}
               >
                 {/* Glow Effect */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-full opacity-0 group-hover:opacity-70 blur-xl transition-all duration-500" />
-                
+
                 {/* Image Container */}
                 <div className="relative">
                   {/* Ring */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 animate-spin-slow" style={{ animationDuration: '8s' }} />
-                  
+
                   {/* Image Wrapper */}
                   <div className="relative w-full aspect-square rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
                     <img
@@ -104,12 +112,19 @@ export default function TeamPage() {
                       alt={member.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    
+
                     {/* Overlay on Hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-green-600/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-4">
                       <Sparkles className="w-6 h-6 text-white animate-pulse" />
                     </div>
                   </div>
+                </div>
+
+                {/* Name Label */}
+                <div className="mt-4 text-center">
+                  <p className="font-semibold text-sm md:text-base text-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300">
+                    {member.name}
+                  </p>
                 </div>
               </div>
             ))}
