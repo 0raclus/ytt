@@ -34,9 +34,9 @@ export function PublicLayout() {
   const navItems = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
     { path: '/events', label: 'Etkinlikler', icon: Calendar },
-    { path: '/plants', label: 'Bitkiler', icon: Leaf },
-    { path: '/blog', label: 'Blog', icon: BookOpen },
-    { path: '/resources', label: 'Kaynaklar', icon: FileText },
+    // { path: '/plants', label: 'Bitkiler', icon: Leaf },
+    // { path: '/blog', label: 'Blog', icon: BookOpen },
+    // { path: '/resources', label: 'Kaynaklar', icon: FileText },
     { path: '/team', label: 'Ekibimiz', icon: Users },
   ];
 
@@ -208,9 +208,10 @@ export function PublicLayout() {
               <h3 className="font-semibold mb-4">Hızlı Bağlantılar</h3>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/events" className="text-muted-foreground hover:text-foreground">Etkinlikler</Link></li>
-                <li><Link to="/plants" className="text-muted-foreground hover:text-foreground">Bitki Kütüphanesi</Link></li>
-                <li><Link to="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li>
-                <li><Link to="/resources" className="text-muted-foreground hover:text-foreground">Kaynaklar</Link></li>
+                {/* <li><Link to="/plants" className="text-muted-foreground hover:text-foreground">Bitki Kütüphanesi</Link></li> */}
+                {/* <li><Link to="/blog" className="text-muted-foreground hover:text-foreground">Blog</Link></li> */}
+                {/* <li><Link to="/resources" className="text-muted-foreground hover:text-foreground">Kaynaklar</Link></li> */}
+                <li><Link to="/team" className="text-muted-foreground hover:text-foreground">Ekibimiz</Link></li>
               </ul>
             </div>
 

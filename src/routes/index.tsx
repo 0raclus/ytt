@@ -22,11 +22,11 @@ const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'))
 const HomePage = lazy(() => import('@/pages/public/HomePage'));
 const EventsPage = lazy(() => import('@/pages/public/EventsPage'));
 const EventDetailPage = lazy(() => import('@/pages/public/EventDetailPage'));
-const PlantsPage = lazy(() => import('@/pages/public/PlantsPage'));
-const PlantDetailPage = lazy(() => import('@/pages/public/PlantDetailPage'));
-const BlogPage = lazy(() => import('@/pages/public/BlogPage'));
-const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
-const ResourcesPage = lazy(() => import('@/pages/public/ResourcesPage'));
+// const PlantsPage = lazy(() => import('@/pages/public/PlantsPage'));
+// const PlantDetailPage = lazy(() => import('@/pages/public/PlantDetailPage'));
+// const BlogPage = lazy(() => import('@/pages/public/BlogPage'));
+// const BlogPostPage = lazy(() => import('@/pages/public/BlogPostPage'));
+// const ResourcesPage = lazy(() => import('@/pages/public/ResourcesPage'));
 const ProfilePage = lazy(() => import('@/pages/public/ProfilePage'));
 const NotificationsPage = lazy(() => import('@/pages/public/NotificationsPage'));
 const TeamPage = lazy(() => import('@/pages/public/TeamPage'));
@@ -73,46 +73,46 @@ const publicRoutes: RouteObject[] = [
           </Suspense>
         ),
       },
-      {
-        path: 'plants',
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <PlantsPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'plants/:id',
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <PlantDetailPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'blog',
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <BlogPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'blog/:slug',
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <BlogPostPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'resources',
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <ResourcesPage />
-          </Suspense>
-        ),
-      },
+      // {
+      //   path: 'plants',
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <PlantsPage />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   path: 'plants/:id',
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <PlantDetailPage />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   path: 'blog',
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <BlogPage />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   path: 'blog/:slug',
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <BlogPostPage />
+      //     </Suspense>
+      //   ),
+      // },
+      // {
+      //   path: 'resources',
+      //   element: (
+      //     <Suspense fallback={<LoadingFallback />}>
+      //       <ResourcesPage />
+      //     </Suspense>
+      //   ),
+      // },
       {
         path: 'profile',
         element: (
