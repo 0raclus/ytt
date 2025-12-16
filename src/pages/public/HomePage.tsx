@@ -193,6 +193,9 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-4">
+                <p className="text-lg md:text-xl text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider animate-fade-in-up">
+                  Hakkımızda
+                </p>
                 <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 dark:from-emerald-400 dark:via-green-400 dark:to-teal-400 bg-clip-text text-transparent animate-fade-in-up">
                   Biz Kimiz?
                 </h2>
@@ -201,8 +204,8 @@ export default function HomePage() {
               </div>
 
               <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                Yaşayan Tasarım Topluluğu (YTT), doğayı, tasarımı ve teknolojiyi bir araya getiren;
-                üretmeyi, paylaşmayı ve birlikte öğrenmeyi seven insanların buluşma noktasıdır.
+                Yaşayan Tasarım Topluluğu (YTT); doğa, tasarım ve teknoloji arasında köprü kuran yenilikçi bir topluluktur.
+                Çevreye duyarlı yaklaşımımızla, sürdürülebilir yaşam kültürünü yaygınlaştırmayı ve tasarımın dönüştürücü gücünü görünür kılmayı amaçlıyoruz.
               </p>
 
               <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed italic animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
@@ -244,12 +247,10 @@ export default function HomePage() {
                   <CardContent className="space-y-6 pb-8">
                     <div className="space-y-4">
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-300">
-                        Hayal gücümüzü doğayla harmanlayarak, üyelerimizin yeni şeyler keşfetmesini,
-                        özgün işler üretmesini ve topluluk ruhunu yaşamasını sağlıyoruz.
+                        Doğal değerlerle modern tasarımı bir araya getirerek üyelerimizin öğrenmesine, üretmesine ve paylaşmasına olanak sağlıyoruz.
                       </p>
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-300">
-                        Ortak projelerle, çevreye duyarlılık konusunda farkındalık oluşturuyor,
-                        daha yaşanabilir bir dünya için adımlar atıyoruz.
+                        Ortak projeler ve yaratıcı iş birlikleriyle çevresel duyarlılığı artıran, geleceğe yönelik yenilikçi çözümler geliştirmeyi hedefliyoruz.
                       </p>
                     </div>
 
@@ -257,7 +258,7 @@ export default function HomePage() {
                     <div className="flex flex-wrap gap-3 pt-4">
                       <Badge className="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700 hover:scale-110 hover:shadow-lg transition-all duration-300 px-4 py-2 text-sm font-medium">
                         <Heart className="h-4 w-4 mr-2 animate-pulse" />
-                        Keşfetmek
+                        Öğrenmek
                       </Badge>
                       <Badge className="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700 hover:scale-110 hover:shadow-lg transition-all duration-300 px-4 py-2 text-sm font-medium">
                         <Users className="h-4 w-4 mr-2 animate-pulse" style={{ animationDelay: '0.2s' }} />
@@ -265,7 +266,7 @@ export default function HomePage() {
                       </Badge>
                       <Badge className="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700 hover:scale-110 hover:shadow-lg transition-all duration-300 px-4 py-2 text-sm font-medium">
                         <Leaf className="h-4 w-4 mr-2 animate-pulse" style={{ animationDelay: '0.4s' }} />
-                        Farkındalık
+                        Paylaşmak
                       </Badge>
                     </div>
                   </CardContent>
@@ -304,11 +305,10 @@ export default function HomePage() {
                   <CardContent className="space-y-6 pb-8">
                     <div className="space-y-4">
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-300">
-                        Yaratıcılığı, sürdürülebilirliği ve paylaşmayı merkezine alan bir topluluk inşa etmek.
+                        Yaratıcı ve çevreye duyarlı bireylerden oluşan, sürdürülebilir tasarımı yaşamın merkezine alan bir topluluk inşa etmek.
                       </p>
                       <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-300">
-                        Doğayı koruyarak, şehirleri güzelleştirerek ve tasarımın gücüyle yaşamı dönüştürerek
-                        geleceğe ilham veren bir yolculuk başlatmak.
+                        Doğal ve kentsel yaşam alanlarını daha yaşanabilir hale getirmek için farkındalık yaratırken, topluma ilham veren bir dönüşümün parçası olmak.
                       </p>
                     </div>
 
@@ -324,7 +324,7 @@ export default function HomePage() {
                       </Badge>
                       <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-300 dark:border-emerald-700 hover:scale-110 hover:shadow-lg transition-all duration-300 px-4 py-2 text-sm font-medium">
                         <Heart className="h-4 w-4 mr-2 animate-pulse" style={{ animationDelay: '0.4s' }} />
-                        Paylaşmak
+                        İlham
                       </Badge>
                     </div>
                   </CardContent>
