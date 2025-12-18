@@ -20,6 +20,7 @@ const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
 
 const HomePage = lazy(() => import('@/pages/public/HomePage'));
+const AboutPage = lazy(() => import('@/pages/public/AboutPage'));
 const EventsPage = lazy(() => import('@/pages/public/EventsPage'));
 const EventDetailPage = lazy(() => import('@/pages/public/EventDetailPage'));
 // const PlantsPage = lazy(() => import('@/pages/public/PlantsPage'));
@@ -54,6 +55,14 @@ const publicRoutes: RouteObject[] = [
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <HomePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'about',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AboutPage />
           </Suspense>
         ),
       },

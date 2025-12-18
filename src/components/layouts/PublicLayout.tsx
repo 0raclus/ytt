@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Leaf, Calendar, BookOpen, FileText, User, Bell, LogOut,
-  Menu, X, Moon, Sun, Home, Mail, Phone, MapPin, Users
+  Menu, X, Moon, Sun, Home, Mail, Phone, MapPin, Users, Info
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { config } from '@/lib/config';
@@ -33,6 +33,7 @@ export function PublicLayout() {
 
   const navItems = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
+    { path: '/about', label: 'Hakkımızda', icon: Info },
     { path: '/events', label: 'Etkinlikler', icon: Calendar },
     // { path: '/plants', label: 'Bitkiler', icon: Leaf },
     // { path: '/blog', label: 'Blog', icon: BookOpen },
